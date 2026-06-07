@@ -1,6 +1,9 @@
 import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime
+import schedule
+import time
+import sys
 
 # 国内 AI 资讯 RSS 源（都是官方提供的，稳定可靠）
 RSS_FEEDS = [
@@ -10,6 +13,9 @@ RSS_FEEDS = [
     {'name': '爱范儿', 'url': 'https://www.ifanr.com/feed'},
     {'name': '小众软件', 'url': 'https://feeds.appinn.com/appinns/'},
 ]
+
+# 输出文件路径
+OUTPUT_FILE = r'E:\python的项目\新闻项目\index.html'
 
 
 def fetch_news_from_rss(feed):
@@ -313,23 +319,25 @@ def generate_html(news_list):
 </body>
 </html>'''
 
-    # 注意：这里的路径要改成你自己的项目路径
-    with open(r'E:\python的项目\新闻项目\index.html', 'w', encoding='utf-8') as f:
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         f.write(html)
-    print("HTML文件已生成")
+    print(f"HTML文件已生成 → {OUTPUT_FILE}")
 
 
-def main():
-    print(f"开始抓取AI新闻... {datetime.now()}")
+def job():
+    """定时执行的抓取任务（每天早上 08:00 触发）"""
+    print(f"\n{'='*50}")
+    print(f"🌟 定时任务触发... {datetime.now()}")
+    print(f"{'='*50}")
 
     all_news = []
     for feed in RSS_FEEDS:
-        print(f"正在抓取: {feed['name']}")
+        print(f"  正在抓取: {feed['name']}")
         news = fetch_news_from_rss(feed)
         all_news.extend(news)
-        print(f"  抓到 {len(news)} 条")
+        print(f"    → 抓到 {len(news)} 条")
 
-    print(f"共抓取 {len(all_news)} 条新闻")
+    print(f"\n📊 共抓取 {len(all_news)} 条新闻")
 
     if all_news:
         # 去重（按标题）
@@ -344,6 +352,33 @@ def main():
         news_list = []
 
     generate_html(news_list)
+    print(f"✅ 本次更新完成 {datetime.now()}\n")
+
+
+def main():
+    print(f"\n{'='*50}")
+    print(f"🤖 AI 资讯自动刷新服务启动")
+    print(f"📅 启动时间: {datetime.now()}")
+    print(f"⏰ 定时任务: 每天 08:00 自动刷新")
+    print(f"📁 输出文件: {OUTPUT_FILE}")
+    print(f"{'='*50}\n")
+
+    # 启动时先立即执行一次（首次运行或手动重启时立即生效）
+    job()
+
+    # 设置定时任务：每天早上 8:00
+    schedule.every().day.at("08:00").do(job)
+    print("⏳ 定时任务已注册，程序将持续运行...")
+    print("   💡 保持此窗口打开，每天 08:00 会自动刷新")
+    print("   💡 按 Ctrl+C 可安全停止服务\n")
+
+    try:
+        while True:
+            schedule.run_pending()
+            time.sleep(60)  # 每分钟检查一次，避免 CPU 空转
+    except KeyboardInterrupt:
+        print(f"\n🛑 服务已手动停止 ({datetime.now()})")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
