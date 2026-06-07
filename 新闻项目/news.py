@@ -1,48 +1,98 @@
 import requests
 import xml.etree.ElementTree as ET
+import re
 from datetime import datetime
 import schedule
 import time
 import sys
 
-# 国内 AI 资讯 RSS 源（都是官方提供的，稳定可靠）
+# ========== 10+ 个 RSS 源（覆盖 AI / 科技 / 开源） ==========
 RSS_FEEDS = [
     {'name': '36氪', 'url': 'https://36kr.com/feed'},
-    {'name': '少数派', 'url': 'https://sspai.com/feed'},
     {'name': 'IT之家', 'url': 'https://www.ithome.com/rss'},
     {'name': '爱范儿', 'url': 'https://www.ifanr.com/feed'},
+    {'name': '开源中国', 'url': 'https://www.oschina.net/news/rss'},
+    {'name': 'InfoQ', 'url': 'https://www.infoq.cn/feed'},
+    {'name': '少数派', 'url': 'https://sspai.com/feed'},
     {'name': '小众软件', 'url': 'https://feeds.appinn.com/appinns/'},
+    {'name': 'Solidot', 'url': 'https://www.solidot.org/index.rss'},
 ]
 
 # 输出文件路径
 OUTPUT_FILE = r'E:\python的项目\新闻项目\index.html'
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
 
-def fetch_news_from_rss(feed):
+# ========== 日期解析（兼容多种 RSS 日期格式） ==========
+def parse_date(date_str):
+    """将多种格式的 RSS 日期转为 YYYY-MM-DD 字符串"""
+    if not date_str:
+        return None
+    try:
+        # 格式1: "2026-06-07T10:00:00+08:00" 或 "2026-06-07"
+        match = re.search(r'(\d{4}-\d{2}-\d{2})', date_str)
+        if match:
+            return match.group(1)
+        # 格式2: "Sun, 07 Jun 2026 05:00:00 GMT" 之类
+        for fmt in [
+            '%a, %d %b %Y %H:%M:%S %Z',
+            '%a, %d %b %Y %H:%M:%S %z',
+            '%a, %d %b %Y %H:%M:%S',
+            '%Y-%m-%dT%H:%M:%S',
+        ]:
+            try:
+                dt = datetime.strptime(date_str.strip(), fmt)
+                return dt.strftime('%Y-%m-%d')
+            except ValueError:
+                continue
+    except Exception:
+        pass
+    return None
+
+
+def is_fresh(date_str, max_days=2):
+    """判断日期是否在最近 X 天内"""
+    if not date_str:
+        return False
+    try:
+        dt = datetime.strptime(date_str, '%Y-%m-%d')
+        diff = (datetime.now() - dt).days
+        return 0 <= diff <= max_days
+    except ValueError:
+        return False
+
+
+# ========== 从 RSS 订阅源抓取 ==========
+def fetch_news_from_rss(feed, max_items=15):
     """从 RSS 订阅源抓取新闻"""
     try:
-        response = requests.get(feed['url'], timeout=10)
+        response = requests.get(feed['url'], timeout=10, headers=HEADERS)
         response.encoding = 'utf-8'
         root = ET.fromstring(response.text)
 
         articles = []
-        # RSS 的标准结构是 .//item
-        for item in root.findall('.//item')[:10]:
+        for item in root.findall('.//item')[:max_items]:
             title = item.find('title').text if item.find('title') is not None else ''
             link = item.find('link').text if item.find('link') is not None else ''
             description = item.find('description').text if item.find('description') is not None else ''
             pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ''
+
+            # 解析日期，失败则用今天
+            parsed = parse_date(pub_date)
+            if not parsed:
+                parsed = datetime.now().strftime('%Y-%m-%d')
 
             articles.append({
                 'title': title,
                 'url': link,
                 'summary': description[:200] if description else '',
                 'source': feed['name'],
-                'time': pub_date[:10] if pub_date else datetime.now().strftime('%Y-%m-%d')
+                'time': parsed,
+                'raw_date': pub_date,
             })
         return articles
     except Exception as e:
-        print(f"抓取 {feed['name']} RSS 失败: {e}")
+        print(f"  ⚠ 抓取 {feed['name']} 失败: {str(e)[:60]}")
         return []
 
 
@@ -289,7 +339,7 @@ def generate_html(news_list):
   <!-- 统计条 -->
   <div class="stats-bar">
     <div class="stat-item"><div class="num">{len(news_list)}</div><div class="label">今日资讯</div></div>
-    <div class="stat-item"><div class="num">RSS</div><div class="label">数据来源</div></div>
+    <div class="stat-item"><div class="num">{len(RSS_FEEDS)}</div><div class="label">数据来源</div></div>
     <div class="stat-item"><div class="num">{now.hour}:00</div><div class="label">实时更新</div></div>
   </div>
 
@@ -332,24 +382,42 @@ def job():
 
     all_news = []
     for feed in RSS_FEEDS:
-        print(f"  正在抓取: {feed['name']}")
-        news = fetch_news_from_rss(feed)
+        print(f"  📡 正在抓取: {feed['name']}")
+        news = fetch_news_from_rss(feed, max_items=15)
         all_news.extend(news)
-        print(f"    → 抓到 {len(news)} 条")
+        if news:
+            dates = sorted(set(a['time'] for a in news))
+            print(f"    → 抓到 {len(news)} 条，日期: {dates[0]} ~ {dates[-1]}")
+        else:
+            print(f"    → 0 条")
 
-    print(f"\n📊 共抓取 {len(all_news)} 条新闻")
+    print(f"\n📊 共抓取 {len(all_news)} 条原始新闻")
 
-    if all_news:
-        # 去重（按标题）
-        seen = set()
-        unique_news = []
-        for item in all_news:
-            if item['title'] not in seen:
-                seen.add(item['title'])
-                unique_news.append(item)
-        news_list = unique_news[:20]
-    else:
-        news_list = []
+    if not all_news:
+        generate_html([])
+        print(f"✅ 本次更新完成（无数据）{datetime.now()}\n")
+        return
+
+    # 去重（按标题，取最新的那条）
+    seen = {}
+    for item in all_news:
+        key = item['title'].strip()[:30]
+        if key not in seen or item['time'] > seen[key]['time']:
+            seen[key] = item
+    unique_news = list(seen.values())
+
+    # 按日期排序（最新的排最前）
+    def sort_key(item):
+        return item['time'] if item['time'] else '0000-00-00'
+    unique_news.sort(key=sort_key, reverse=True)
+
+    # 统计新鲜度
+    today = datetime.now().strftime('%Y-%m-%d')
+    fresh_count = sum(1 for n in unique_news if is_fresh(n['time'], max_days=1))
+    print(f"  🆕 今日+昨日新闻: {fresh_count} 条 / 共 {len(unique_news)} 条去重")
+
+    # 最终取前 20 条（但尽量让新鲜内容排前面）
+    news_list = unique_news[:20]
 
     generate_html(news_list)
     print(f"✅ 本次更新完成 {datetime.now()}\n")
