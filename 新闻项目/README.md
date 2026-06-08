@@ -14,6 +14,26 @@
 
 ## 📋 更新日志
 
+### 2026-06-08 v2.3
+> **自动化**：配置 GitHub Actions，实现每天自动抓取、生成并推送，无需任何手动操作
+
+**🛠 核心改造：**
+- **根本问题**：之前必须在本地保持 `news.py` 后台运行才能自动刷新，且推送到 GitHub Pages 仍需手动
+- **修复方案**：添加 GitHub Actions CI/CD，云端定时执行 + 自动推送到仓库
+
+**📦 改动的文件：**
+
+| 文件 | 变更 |
+|------|------|
+| `news.py` | 新增 `--once` 参数支持（单次运行后退出，适配 CI 环境）；输出路径改为相对路径 `./index.html` |
+| `.github/workflows/daily-news.yml` | 新增，GitHub Actions 工作流：每天 UTC 00:00（北京时间 08:00）自动运行 |
+
+**✨ 优化内容：**
+- 每天北京时间 08:00 自动抓取 → 生成 → 推送到 GitHub Pages
+- 支持手动触发：GitHub 仓库 → Actions → Daily News Refresh → Run workflow
+- 无需本地运行 `news.py`，不再依赖本地 Python 服务
+- `.github/workflows/` 推送后立即生效，第二天早上就有新内容
+
 ### 2026-06-07 v2.2
 > **改造**：RSS源扩展至8个，新增日期排序、新鲜度过滤、去重逻辑，确保每天刷新到最新内容
 
@@ -63,6 +83,12 @@
 
 ### 安装与使用
 
+#### 🚀 方式一：全自动（推荐）
+项目已配置 **GitHub Actions**，每天北京时间 **08:00** 自动抓取新闻并更新页面。
+> 只需 **push 到 GitHub 仓库一次**，之后完全托管在云端，无需本地运行任何东西。
+> 也可以在 GitHub 仓库 → Actions → Daily News Refresh → **Run workflow** 手动触发。
+
+#### 💻 方式二：本地运行
 1.  **克隆项目** (或直接下载代码)
     ```bash
     git clone https://github.com/S-han33/my_xiaoshanshan33.git
