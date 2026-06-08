@@ -18,8 +18,8 @@ RSS_FEEDS = [
     {'name': 'Solidot', 'url': 'https://www.solidot.org/index.rss'},
 ]
 
-# 输出文件路径
-OUTPUT_FILE = r'E:\python的项目\新闻项目\index.html'
+# 输出文件路径（相对路径，兼容本地和 GitHub Actions）
+OUTPUT_FILE = './index.html'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
 
@@ -424,6 +424,14 @@ def job():
 
 
 def main():
+    # 支持 --once 参数：运行一次后退出（供 GitHub Actions 使用）
+    if '--once' in sys.argv:
+        print(f"\n{'='*50}")
+        print(f"🔁 单次运行模式 (--once)")
+        print(f"{'='*50}")
+        job()
+        return
+
     print(f"\n{'='*50}")
     print(f"🤖 AI 资讯自动刷新服务启动")
     print(f"📅 启动时间: {datetime.now()}")
