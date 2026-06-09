@@ -2,9 +2,12 @@ name: Daily News Refresh
 
 on:
   schedule:
-    # 每天 UTC 00:00 = 北京时间 08:00
     - cron: '0 0 * * *'
   workflow_dispatch:
+
+# 关键：授予写入权限
+permissions:
+  contents: write
 
 jobs:
   refresh:
