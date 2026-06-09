@@ -345,7 +345,7 @@ def generate_html(news_list):
 
   <!-- 资讯列表 -->
   <div class="news-list">
-    {''.join([f'''
+    {''.join([f"""
     <a class="card" href="{item['url']}" target="_blank" rel="noopener noreferrer" title="点击查看详情">
       <div class="card-header">
         <div class="index">{i + 1}</div>
@@ -357,7 +357,7 @@ def generate_html(news_list):
         <span class="time">{item['time']}</span>
       </div>
     </a>
-    ''' for i, item in enumerate(news_list)])}
+    """ for i, item in enumerate(news_list)])}
   </div>
 
   <!-- 底部 -->
