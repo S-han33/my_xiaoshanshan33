@@ -2,10 +2,9 @@ name: Daily News Refresh
 
 on:
   schedule:
-    # 每天 UTC 00:00 = 北京时间 08:00
+    # 姣忓ぉ UTC 00:00 = 鍖椾含鏃堕棿 08:00
     - cron: '0 0 * * *'
-  # 支持手动触发（在 GitHub 页面点 "Run workflow" 按钮）
-  workflow_dispatch:
+  # 鏀寔鎵嬪姩瑙﹀彂锛堝湪 GitHub 椤甸潰鐐?"Run workflow" 鎸夐挳锛?  workflow_dispatch:
 
 jobs:
   refresh:
@@ -27,13 +26,13 @@ jobs:
 
       - name: Run news scraper
         run: |
-          cd 新闻项目
+          cd 鏂伴椈椤圭洰
           python news.py --once
 
       - name: Commit & push if changed
         run: |
           git config user.name "news-bot"
           git config user.email "actions@github.com"
-          git add 新闻项目/index.html
-          git diff --quiet && git diff --staged --quiet || git commit -m "auto: 每日新闻刷新 $(date +'%Y-%m-%d')"
+          git add 鏂伴椈椤圭洰/index.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "auto: 姣忔棩鏂伴椈鍒锋柊 $(date +'%Y-%m-%d')"
           git push
