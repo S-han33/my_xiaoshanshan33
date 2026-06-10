@@ -20,7 +20,13 @@ RSS_FEEDS = [
 
 # 输出文件路径（相对路径，兼容本地和 GitHub Actions）
 OUTPUT_FILE = './index.html'
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'Accept': 'application/rss+xml, application/xml, text/xml, */*;q=0.9',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+}
 
 
 # ========== 日期解析（兼容多种 RSS 日期格式） ==========
@@ -63,37 +69,55 @@ def is_fresh(date_str, max_days=2):
 
 
 # ========== 从 RSS 订阅源抓取 ==========
-def fetch_news_from_rss(feed, max_items=15):
-    """从 RSS 订阅源抓取新闻"""
-    try:
-        response = requests.get(feed['url'], timeout=10, headers=HEADERS)
-        response.encoding = 'utf-8'
-        root = ET.fromstring(response.text)
+def fetch_news_from_rss(feed, max_items=15, max_retries=3):
+    """从 RSS 订阅源抓取新闻（带重试机制）"""
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(feed['url'], timeout=15, headers=HEADERS)
+            response.raise_for_status()
+            
+            # 防御：检查返回的是否为 XML，防止拿到 HTML 错误页
+            text_start = response.text.strip()[:200].lower()
+            if not (text_start.startswith('<?xml') or '<rss' in text_start or '<feed' in text_start):
+                raise ValueError(f"返回内容不是 XML: {text_start[:50]}")
+            
+            response.encoding = 'utf-8'
+            root = ET.fromstring(response.text)
 
-        articles = []
-        for item in root.findall('.//item')[:max_items]:
-            title = item.find('title').text if item.find('title') is not None else ''
-            link = item.find('link').text if item.find('link') is not None else ''
-            description = item.find('description').text if item.find('description') is not None else ''
-            pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ''
+            articles = []
+            for item in root.findall('.//item')[:max_items]:
+                title = item.find('title').text if item.find('title') is not None else ''
+                link = item.find('link').text if item.find('link') is not None else ''
+                description = item.find('description').text if item.find('description') is not None else ''
+                pub_date = item.find('pubDate').text if item.find('pubDate') is not None else ''
+                
+                # 兼容 Dublin Core 日期格式
+                if not pub_date:
+                    dc_date = item.find('.//{http://purl.org/dc/elements/1.1/}date')
+                    if dc_date is not None:
+                        pub_date = dc_date.text
 
-            # 解析日期，失败则用今天
-            parsed = parse_date(pub_date)
-            if not parsed:
-                parsed = datetime.now().strftime('%Y-%m-%d')
+                # 解析日期，失败则用今天
+                parsed = parse_date(pub_date)
+                if not parsed:
+                    parsed = datetime.now().strftime('%Y-%m-%d')
 
-            articles.append({
-                'title': title,
-                'url': link,
-                'summary': description[:200] if description else '',
-                'source': feed['name'],
-                'time': parsed,
-                'raw_date': pub_date,
-            })
-        return articles
-    except Exception as e:
-        print(f"  ⚠ 抓取 {feed['name']} 失败: {str(e)[:60]}")
-        return []
+                articles.append({
+                    'title': title,
+                    'url': link,
+                    'summary': description[:200] if description else '',
+                    'source': feed['name'],
+                    'time': parsed,
+                    'raw_date': pub_date,
+                })
+            return articles
+        except Exception as e:
+            print(f"  ⚠ 抓取 {feed['name']} 失败 (尝试 {attempt+1}/{max_retries}): {str(e)[:80]}")
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)  # 指数退避：1s, 2s, 4s
+            else:
+                return []
+    return []
 
 
 def generate_html(news_list):
@@ -393,9 +417,9 @@ def job():
 
     print(f"\n📊 共抓取 {len(all_news)} 条原始新闻")
 
+    # 如果所有源都失败，不生成 HTML（保持上次的内容不变）
     if not all_news:
-        generate_html([])
-        print(f"✅ 本次更新完成（无数据）{datetime.now()}\n")
+        print("❌ 所有 RSS 源均抓取失败，跳过本次更新（保留旧页面）")
         return
 
     # 去重（按标题，取最新的那条）
