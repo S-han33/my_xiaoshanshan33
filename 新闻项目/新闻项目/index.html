@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日 AI 资讯</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  /* 头部 */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .header .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .header .logo-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header .date {
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 1px;
+  }
+
+  /* 统计条 */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-item .num {
+    font-size: 26px;
+    font-weight: 700;
+    color: #667eea;
+  }
+
+  .stat-item .label {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+  }
+
+  /* 卡片 */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s, border-left-color 0.2s;
+    border-left: 4px solid transparent;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(102,126,234,0.2);
+    border-left-color: #667eea;
+  }
+
+  .card::after {
+    content: "↗";
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 16px;
+    color: #ccc;
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .card:hover::after {
+    color: #667eea;
+    transform: translate(3px, -3px);
+  }
+
+  .card .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding-right: 30px;
+  }
+
+  .card .index {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .card .title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1a2e;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .card .summary {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    padding-left: 40px;
+    padding-right: 30px;
+  }
+
+  .card .meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-left: 40px;
+    font-size: 12px;
+    color: #aaa;
+  }
+
+  .card .meta .source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f0f3ff;
+    color: #667eea;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .card .meta .time {
+    color: #bbb;
+  }
+
+  /* 底部 */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    color: #bbb;
+    font-size: 12px;
+  }
+
+  /* 响应式 */
+  @media (max-width: 600px) {
+    .container { padding: 0 8px; }
+    .card { padding: 18px 16px; }
+    .card .summary, .card .meta { padding-left: 0; }
+    .card .index { display: none; }
+    .card .card-header { padding-right: 24px; }
+    .card::after { right: 16px; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 头部 -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">AI</div>
+    </div>
+    <h1>今日 AI 资讯</h1>
+    <p class="date">2026 年 06 月 08 日  星期一</p>
+  </div>
+
+  <!-- 统计条 -->
+  <div class="stats-bar">
+    <div class="stat-item"><div class="num">20</div><div class="label">今日资讯</div></div>
+    <div class="stat-item"><div class="num">8</div><div class="label">数据来源</div></div>
+    <div class="stat-item"><div class="num">13:00</div><div class="label">实时更新</div></div>
+  </div>
+
+  <!-- 资讯列表 -->
+  <div class="news-list">
+    
+    <a class="card" href="https://36kr.com/p/3844006775360002?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">1</div>
+        <div class="title">产品观察 | 小米创始员工范典创业AI硬件，做了台“无摩擦”的睡眠床头灯</div>
+      </div>
+      <div class="summary">
+ 
+ 
+  <p>作者&nbsp;|&nbsp;邱晓芬</p>
+  <p>编辑&nbsp;|&nbsp;袁斯来</p>
+  <p>「格物科技」的创始人范典，是当下智能硬件赛道的一个“异类”。</p>
+  <p>作为喝过小米粥的小米创始员工，范典曾任曾小米物联网平台部总经理、AIoT战略委员会主席。以大厂高管履历拿笔钱，以最短时间做出款硬件上众筹，依托媒体造势，再滚动更多融资是这两年硬件赛道创业很</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/p/3841459663030532?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">2</div>
+        <div class="title">「华超神控」获亿元天使系列融资，加速打造新一代AI超声脑机接口平台 | 36氪首发</div>
+      </div>
+      <div class="summary">
+ 
+ 
+  <p>文｜胡香赟</p>
+  <p>编辑｜海若镜</p>
+  <p>36氪获悉，近日，新一代AI超声脑机公司华超神控（BCI-Sonics）已完成亿元人民币级天使轮系列融资。天使轮融资由经纬创投领投，天使+轮由德联资本、道远资本联合领投，循光资本持续担任独家财务顾问。募集资金将用于推动公司的技术验证与产业化落地。</p>
+  <p>华超神控于2025年创立，创始人李昕是中国科学院与德</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/p/3843764238174729?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">3</div>
+        <div class="title">8点1氪丨八家上市公司集中公告“补税”；ChatGPT将迎来史上最大幅度升级；高考新增AI监考员，自动截取异常录像</div>
+      </div>
+      <div class="summary">
+ 
+ 
+  <h2>今日热点导览</h2>
+  <p>AI等机器网络请求量首超人类</p>
+  <p>瑞幸咖啡回应拿铁去冰仅半杯</p>
+  <p>宗馥莉自有品牌KELLYONE回归</p>
+  <p>多家低成本航空公司对登机箱登机收费</p>
+  <p>黄仁勋会见韩国两大游戏商代表共商游戏AI合作方案</p>
+  <h2>TOP3大新闻</h2>
+  <p><strong>八家上市公司集中公告</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/newsflashes/3844078860356100?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">4</div>
+        <div class="title">Gen II正考虑以60亿美元出售</div>
+      </div>
+      <div class="summary">据英国《金融时报》周一援引知情人士的话报道，总部位于纽约的Gen II的股东正考虑在今年晚些时候出售这家私募基金管理公司，交易金额预计达60亿美元。据Hg网站显示，该公司由一个机构投资者财团提供支持，其中包括私募股权公司General Atlantic和软件投资机构Hg HGT.L。报道称，目前尚未做出最终决定，计划仍可能发生变动，且迄今尚未任命任何顾问。据其官网显示，Gen II成立于2009年</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/newsflashes/3844076269504769?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">5</div>
+        <div class="title">英国初创公司PhysicsX完成3亿美元融资</div>
+      </div>
+      <div class="summary">英国初创公司PhysicsX在新一轮融资中筹集了3亿美元，公司估值约为24亿美元，新加坡淡马锡领投，英伟达和应用材料等早期投资者也继续参与。该公司提供一种AI模型，可预测物理对象的行为，使航空航天和汽车企业在设计、测试和组装流程上更为高效。公司表示，由于客户需求积压约六个月，PhysicsX需扩充团队，因此需要更多资金。公司预计今年营收将“接近5000万美元”。（新浪财经）</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/newsflashes/3844067226831364?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">6</div>
+        <div class="title">中国神华涨超5%，创2007年11月以来新高</div>
+      </div>
+      <div class="summary">36氪获悉，煤炭板块持续活跃，中国神华涨超5%，创2007年11月以来新高。</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/newsflashes/3844064118262278?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">7</div>
+        <div class="title">南向资金净买入额达50亿港元</div>
+      </div>
+      <div class="summary">36氪获悉，南向资金净买入额达50亿港元。</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://36kr.com/newsflashes/3844058449988100?f=rss" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">8</div>
+        <div class="title">字节Seed��关人士回应顾全全离职传闻：并非AI制药及预训练负责人</div>
+      </div>
+      <div class="summary">近期，市场有传闻称，原字节跳动Seed团队成员顾全全已离职创业。部分消息将其描述为 Seed 团队AI制药及大模型（LLM）预训练业务的负责人。对此，字节Seed相关人士称：“顾全全在公司参与过生物分子结构预测和LLM预训练的部分工作，但并不是字节Seed的AI制药和预训练负责人，对其创业事宜不了解。”</div>
+      <div class="meta">
+        <span class="source">36氪</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/351.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">9</div>
+        <div class="title">Epic 喜加一：原价 25 元休闲模拟游戏 《Relaxing Simulator》免费领</div>
+      </div>
+      <div class="summary"><p data-vmark="329b">IT之家 6 月 8 日消息，因多人跳跃游戏<a href="https://www.ithome.com/0/959/073.htm" target="_blank">《Bunny Guys!》意外爆红</a>而受到外界关注的独立开发者 Ares-X 宣布旗下休闲模拟游戏 《Relaxing Simulator》在 Epic 游戏商店开启限时免费“喜加一</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/339.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">10</div>
+        <div class="title">Steam 喜加一：原价 70 元恐怖游戏《Remothered: Broken Porcelain》免费领</div>
+      </div>
+      <div class="summary"><p data-vmark="e048">IT之家 6 月 8 日消息，由意大利开发团队 Stormind Games 打造的心理恐怖生存游戏《Remothered：Tormented Fathers》现已在 Steam 平台开启 24 小时限时“喜加一”活动，<strong>玩家可以在北京时间 6 月 9 日前免费领取这款在国区定价 70 元的作品</strong>，IT之家附 Steam 商品</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/337.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">11</div>
+        <div class="title">苹果 iPhone 显示最高气温接近 50 度，杭州临安气象局通报称 App 自身系统数据错误</div>
+      </div>
+      <div class="summary"><p data-vmark="083a">IT之家 6 月 8 日消息，浙江省杭州市临安区气象局今日（6 月 8 日）发布《关于 6 月 7 日夜里某品牌手机 App 预报错误的情况说明》。</p><p data-vmark="1311">针对 6 月 7 日夜里某知名手机品牌用户在自带天气预报 App 中发现<strong>临安区 2026 年 6 月 15 日最高气温接近 50℃</stron</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/325.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">12</div>
+        <div class="title">TrendForce：SpaceX IPO 将带动全球卫星产值 2027 年达 4470 亿美元，年增 14%</div>
+      </div>
+      <div class="summary"><p data-vmark="c5c0">IT之家 6 月 8 日消息，随着全球卫星宽带、手机直连卫星及 AI 运算需求快速成长，SpaceX 未来 IPO 动向备受市场关注。</p><p data-vmark="2067">TrendForce 集邦咨询表示，SpaceX 除持续扩大卫星宽带服务版图外，也积极布局手机直连卫星、AI 太空运算及太空太阳能 (Space-Based Solar Po</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/314.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">13</div>
+        <div class="title">新能源车“变胖”让老司机都犯愁，数据显示常见家用车 10 年变宽 20 厘米</div>
+      </div>
+      <div class="summary"><p data-vmark="a44d">IT之家 6 月 8 日消息，据央视新闻 6 月 7 日报道，车好像在变大、车位好像在变窄，近些年来，不少人都有这样的感觉。</p><p data-vmark="d61c">数据显示，<strong>如今家用热门新能源车中的大型 SUV、MPV 车型普遍接近甚至超过 2 米</strong>，车重也是动辄在 2 吨以上。日益变胖的新能源车，也给车主停车带来</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/310.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">14</div>
+        <div class="title">OWC Stack AI 揭开神秘面纱，实为外置式群联 aiDAPTIV 内存化闪存方案</div>
+      </div>
+      <div class="summary"><p data-vmark="2c93">IT之家 6 月 8 日消息，Other World Computing (OWC) 今年 5 月的时候曾宣布了一款名为 OWC Stack AI 的雷电 5“AI 加速器”与外置存储解决方案，不过当时并未对其技术原理进行深入介绍。</p><p data-vmark="be9f" style="text-align: center;"><img src="</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/305.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">15</div>
+        <div class="title">vivo X Fold6 折叠屏真机曝光，已定档本月发布</div>
+      </div>
+      <div class="summary"><p data-vmark="cba6">IT之家 6 月 8 日消息，据新浪娱乐，演员、歌手朱珠今日亮相法网女单决赛现场，手中这款折叠屏手机格外抢镜，预计为尚未发布的 vivo X Fold6。</p><p data-vmark="ec72" style="text-align: center;"><img src="https://img.ithome.com/newsuploadfiles/</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/301.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">16</div>
+        <div class="title">经典经营游戏续作《动物园之星 2》实机视频公布，10 月 13 日发售</div>
+      </div>
+      <div class="summary"><p data-vmark="5815">IT之家 6 月 8 日消息，索尼 PlayStation 中国今日公布《动物园之星 2》官方实机游戏宣传视频，将登陆 PS5 平台。</p><p data-vmark="b53f" style="text-align: center;"><a class="ithome_super_player" contenteditable="false" targ</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/296.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">17</div>
+        <div class="title">消息称英伟达 GeForce RTX 50 系列显卡 SUPER 版本最快 2027 年初推出</div>
+      </div>
+      <div class="summary"><p data-vmark="000b">IT之家 6 月 8 日消息，台媒 <span class="link-text-start-with-http">BenchLife.info</span> 本月 5 日根据其“认知”爆料称，NVIDIA（英伟达）GeForce RTX 50 系列显卡的 SUPER 版本<strong>最快也要到 2027 年初才会推出</strong>，发布时间最早也</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/295.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">18</div>
+        <div class="title">零跑 A10 纯电小车 OTA 升级：优化空调防霉菌模式，提升智能辅助驾驶功能</div>
+      </div>
+      <div class="summary"><p data-vmark="6230">IT之家 6 月 8 日消息，零跑汽车宣布零跑 A10 最新 OTA 已于 6 月 8 日开始陆续推送，带来三大功能升级。</p><p data-vmark="9ef5" style="text-align: center;"><img src="https://img.ithome.com/newsuploadfiles/2026/6/017182cd-</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/290.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">19</div>
+        <div class="title">《007：初露锋芒》销量破 300 万份，CEO 否认游戏开发成本高达 2 亿美元</div>
+      </div>
+      <div class="summary"><p data-vmark="bab9">IT之家 6 月 8 日消息，据 IO Interactive 首席执行官哈坎・阿布拉克透露，全新詹姆斯・邦德题材游戏《007：初露锋芒》销量已突破 300 万份。他同时驳斥了外界关于该游戏研发成本高达 2 亿美元（IT之家注：现汇率约合 13.59 亿元人民币）的说法。</p><p style="text-align: center;" data-vma</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+    <a class="card" href="https://www.ithome.com/0/961/289.htm" target="_blank" rel="noopener noreferrer" title="点击查看详情">
+      <div class="card-header">
+        <div class="index">20</div>
+        <div class="title">长城炮 Hi4-T 皮卡 6 月 13 日重庆车展上市，预售 14.98 万起</div>
+      </div>
+      <div class="summary"><p data-vmark="b0f9">IT之家 6 月 8 日消息，长城炮今日宣布，Hi4-T 皮卡将于 6 月 13 日重庆车展上市。该车已经在 4 月北京车展开启预售，预售价为 14.98 万元起：</p><ul class="medium-size list-paddingleft-2"><li><p data-vmark="f82d">商用炮两驱精英型 PHEV：14.98 万元</p</div>
+      <div class="meta">
+        <span class="source">IT之家</span>
+        <span class="time">2026-06-08</span>
+      </div>
+    </a>
+    
+  </div>
+
+  <!-- 底部 -->
+  <div class="footer">
+    AI 资讯 · 每日自动更新 · 数据来源：RSS 订阅源
+  </div>
+</div>
+
+</body>
+</html>
