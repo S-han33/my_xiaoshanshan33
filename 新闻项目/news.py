@@ -56,6 +56,37 @@ def parse_date(date_str):
     return None
 
 
+# ========== AI 关键词过滤 ==========
+AI_KEYWORDS = [
+    # 中文核心
+    'ai', '人工智能', '机器学习', '深度学习', '大模型', '大语言模型',
+    'llm', 'gpt', 'chatgpt', 'openai', 'claude', 'gemini', 'copilot',
+    '智能体', 'agent', 'aigc', '生成式', '多模态', '神经网络',
+    'transformer', '扩散模型', 'sora', 'midjourney', 'stable diffusion',
+    'hugging face', 'mistral', 'anthropic',
+    # 中英文混合
+    '大模型', '推理模型', '语言模型', '视觉模型', '文生', '图生',
+    'ai芯片', 'ai处理器', 'ai应用', 'ai助手', 'ai功能',
+    '算法', '算力', '神经网络',
+    # 关键应用
+    '自动驾驶', '无人驾驶', '机器人', '智能语音', '自然语言处理',
+    '计算机视觉', '人脸识别', '图像识别',
+    # 英文
+    'artificial intelligence', 'machine learning', 'deep learning',
+    'neural network', 'large language model', 'computer vision',
+    'autonomous driving', 'natural language processing',
+]
+
+
+def is_ai_related(item):
+    """判断一条新闻是否与 AI 相关（匹配标题和摘要）"""
+    text = (item['title'] + ' ' + item['summary']).lower()
+    for kw in AI_KEYWORDS:
+        if kw.lower() in text:
+            return True
+    return False
+
+
 def is_fresh(date_str, max_days=2):
     """判断日期是否在最近 X 天内"""
     if not date_str:
@@ -440,8 +471,16 @@ def job():
     fresh_count = sum(1 for n in unique_news if is_fresh(n['time'], max_days=1))
     print(f"  🆕 今日+昨日新闻: {fresh_count} 条 / 共 {len(unique_news)} 条去重")
 
+    # AI 关键词过滤：只保留与 AI 相关的新闻
+    ai_news = [n for n in unique_news if is_ai_related(n)]
+    print(f"  🤖 其中 AI 相关新闻: {len(ai_news)} 条")
+
+    if not ai_news:
+        print("❌ 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
+        return
+
     # 最终取前 20 条（但尽量让新鲜内容排前面）
-    news_list = unique_news[:20]
+    news_list = ai_news[:20]
 
     generate_html(news_list)
     print(f"✅ 本次更新完成 {datetime.now()}\n")
