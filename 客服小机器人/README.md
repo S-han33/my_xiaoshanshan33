@@ -1,0 +1,51 @@
+# 客服机器人 - Coze + Python 版 🤖
+
+一个基于 Coze 工作流和 Python 的智能客服机器人。支持快递查询，通过 API 调用 Coze 工作流，意图识别后自动返回物流信息。
+👏
+## 功能 📦
+
+- 接收用户输入（快递单号等）
+- 调用 Coze 工作流进行意图识别
+- 返回快递物流信息
+## 其他功能 😂
+
+- 能像平台基础的机器人一样回答问题
+- 分售前、售中、售后服务
+- 可自行去添加详细的问题分类
+
+## 注意事项⚠️
+- 前面要先获取平台的API，让py文件和API结合，才能获取顾客的订单信息
+- 转接人工客服时也需获取每个客服的API，来分流
+- 使用平台之前先用没有开流的账号先运行一次
+- coze的功能是要顾客输入快递单号去查询，可能会遇到顾客不知道单号的情况，可自行去添加获取平台单号的信息之后再来链接coze插件，建议让内部人员操作这项
+
+- 也可以简单一点：**转人工**让客服直接回答
+![img.png](img.png)
+- coze工作流比较简单，感兴趣的可以在里面多添加其他的插件
+- 例如：闲聊这一块，查询商品有关专业知识这一块，对于商品出现的专业词语这一块。
+## 快速开始🚀
+
+### 1. 克隆项目
+
+```bash
+git clone https://github.com/你的用户名/仓库名.git
+cd 仓库名
+ 
+
+bash
+pip install cozepy python-dotenv
+
+安装依赖
+bash
+
+pip install cozepy python-dotenv
+配置环境变量
+复制 .env 文件（已包含在项目中），填入你自己的 Coze 信息：
+bash
+
+COZE_API_TOKEN=你的PersonalAccessToken
+WORKFLOW_ID=你的工作流ID
+
+如何获取？
+COZE_API_TOKEN：登录 Coze → 头像 → 设置 → API 密钥 → 创建新密钥
+WORKFLOW_ID：进入你的工作流 → 浏览器地址栏 workflow_id=xxx 后面的数字
