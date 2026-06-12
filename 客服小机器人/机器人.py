@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from cozepy import Coze, TokenAuth, COZE_CN_BASE_URL
 
-load_dotenv("") # 这里输入你的cozeAPI的密钥文件名字进去
+load_dotenv("你的密码.env")
 
 
 # ========== Coze 配置 ==========
