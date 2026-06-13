@@ -151,11 +151,23 @@ def fetch_news_from_rss(feed, max_items=15, max_retries=3):
     return []
 
 
+def format_display_date(date_str):
+    """将 YYYY-MM-DD 转为 '2026 年 06 月 13 日 星期六' 格式"""
+    week_days = ['一', '二', '三', '四', '五', '六', '日']
+    try:
+        dt = datetime.strptime(date_str, '%Y-%m-%d')
+        w = week_days[dt.weekday()]
+        return f'{dt.year} 年 {dt.month:02d} 月 {dt.day:02d} 日  星期{w}'
+    except ValueError:
+        now = datetime.now()
+        w = week_days[now.weekday()]
+        return f'{now.year} 年 {now.month:02d} 月 {now.day:02d} 日  星期{w}'
+
+
 def generate_html(news_list):
-    """生成 HTML"""
+    """生成 HTML（暗色科技风 - 图片同款设计）"""
     if not news_list:
         print("警告：没有新闻数据，生成空白页面")
-        # 如果没抓到新闻，放几条示例数据占位
         news_list = [{
             'title': '示例：请检查网络或 RSS 源',
             'url': '#',
@@ -164,10 +176,11 @@ def generate_html(news_list):
             'time': datetime.now().strftime('%Y-%m-%d')
         }]
 
+    # 用最新一条新闻的日期作为标题日期
+    latest_date = news_list[0]['time'] if news_list else datetime.now().strftime('%Y-%m-%d')
+    date_str = format_display_date(latest_date)
+
     now = datetime.now()
-    week_days = ['一', '二', '三', '四', '五', '六', '日']
-    w = week_days[now.weekday()]
-    date_str = f'{now.year} 年 {now.month:02d} 月 {now.day:02d} 日  星期{w}'
 
     html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
@@ -180,92 +193,178 @@ def generate_html(news_list):
 
   body {{
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
-    color: #1a1a2e;
+    background: #060608;
+    color: #e8e8ec;
     min-height: 100vh;
-    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }}
+
+  /* ========== 全局背景光效层 ========== */
+  .bg-lights {{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }}
+
+  .bg-lights .beam-left {{
+    position: absolute;
+    top: -5%;
+    left: -30%;
+    width: 80vw;
+    height: 80vh;
+    background: conic-gradient(from 200deg at 50% 50%, transparent 0deg, rgba(255, 130, 40, 0.20) 50deg, rgba(255, 90, 20, 0.10) 100deg, transparent 160deg);
+    filter: blur(80px);
+    transform: rotate(-10deg);
+  }}
+
+  .bg-lights .beam-right {{
+    position: absolute;
+    top: -5%;
+    right: -30%;
+    width: 80vw;
+    height: 80vh;
+    background: conic-gradient(from -20deg at 50% 50%, transparent 0deg, rgba(255, 130, 40, 0.20) 50deg, rgba(255, 90, 20, 0.10) 100deg, transparent 160deg);
+    filter: blur(80px);
+    transform: rotate(10deg);
+  }}
+
+  .bg-lights .glow-top {{
+    position: absolute;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 350px;
+    background: radial-gradient(ellipse, rgba(255, 140, 50, 0.06) 0%, transparent 65%);
   }}
 
   .container {{
     max-width: 800px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    padding: 0 20px;
   }}
 
-  /* 头部 */
-  .header {{
+  /* ========== Hero 头部区域 ========== */
+  .hero {{
     text-align: center;
-    margin-bottom: 40px;
+    padding: 70px 0 36px;
+    position: relative;
   }}
 
-  .header .logo {{
+  /* 顶部标签 pills */
+  .hero .top-pills {{
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
+    gap: 12px;
+    margin-bottom: 32px;
   }}
 
-  .header .logo-icon {{
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    display: flex;
+  .hero .pill {{
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #fff;
-    font-weight: bold;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    color: #888;
+    backdrop-filter: blur(12px);
+    transition: all 0.3s;
+    cursor: default;
   }}
 
-  .header h1 {{
-    font-size: 28px;
+  .hero .pill.pill-active {{
+    border-color: rgba(255, 140, 50, 0.30);
+    background: rgba(255, 140, 50, 0.08);
+    color: #ff8c32;
+  }}
+
+  /* 大标题 - 白 + 橙渐变 */
+  .hero h1 {{
+    font-size: 44px;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #f5f5f8;
+    line-height: 1.15;
+    margin-bottom: 14px;
+    letter-spacing: -0.5px;
+  }}
+
+  .hero h1 .highlight {{
+    background: linear-gradient(135deg, #ff8c32 0%, #ffb347 50%, #ff4d00 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }}
 
-  .header .date {{
-    font-size: 14px;
-    color: #888;
+  /* 日期副标题 */
+  .hero .date {{
+    font-size: 15px;
+    color: #666;
     letter-spacing: 1px;
+    margin-bottom: 36px;
   }}
 
-  /* 统计条 */
+  /* ========== 统计条（微透明框） ========== */
   .stats-bar {{
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-bottom: 30px;
+    gap: 16px;
+    margin-bottom: 44px;
     flex-wrap: wrap;
   }}
 
   .stat-item {{
     text-align: center;
+    padding: 16px 26px;
+    min-width: 100px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    backdrop-filter: blur(16px);
+    transition: all 0.3s;
+  }}
+
+  .stat-item:hover {{
+    border-color: rgba(255, 140, 50, 0.18);
+    background: rgba(255, 255, 255, 0.035);
+    transform: translateY(-2px);
   }}
 
   .stat-item .num {{
     font-size: 26px;
     font-weight: 700;
-    color: #667eea;
+    background: linear-gradient(135deg, #ff8c32 0%, #ffb347 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 6px;
   }}
 
   .stat-item .label {{
-    font-size: 12px;
-    color: #999;
-    margin-top: 2px;
+    font-size: 11px;
+    color: #555;
+    font-weight: 500;
+    letter-spacing: 0.5px;
   }}
 
-  /* 卡片 */
+  /* 卡片 - 玻璃态暗色 */
   .card {{
-    background: #fff;
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.035);
+    border-radius: 18px;
     padding: 24px 28px;
     margin-bottom: 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    transition: transform 0.2s, box-shadow 0.2s, border-left-color 0.2s;
-    border-left: 4px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px) saturate(180%);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-left: 3px solid transparent;
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -274,24 +373,41 @@ def generate_html(news_list):
     color: inherit;
   }}
 
+  .card::before {{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 140, 50, 0.25), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }}
+
   .card:hover {{
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(102,126,234,0.2);
-    border-left-color: #667eea;
+    transform: translateY(-4px) scale(1.005);
+    border-left-color: #ff8c32;
+    box-shadow: 0 12px 40px rgba(255, 140, 50, 0.08), 0 0 60px rgba(255, 140, 50, 0.04);
+    background: rgba(255, 255, 255, 0.055);
+  }}
+
+  .card:hover::before {{
+    opacity: 1;
   }}
 
   .card::after {{
     content: "↗";
     position: absolute;
-    top: 20px;
+    top: 22px;
     right: 24px;
     font-size: 16px;
-    color: #ccc;
-    transition: color 0.2s, transform 0.2s;
+    color: #333;
+    transition: all 0.3s;
   }}
 
   .card:hover::after {{
-    color: #667eea;
+    color: #ff8c32;
     transform: translate(3px, -3px);
   }}
 
@@ -299,38 +415,39 @@ def generate_html(news_list):
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     padding-right: 30px;
   }}
 
   .card .index {{
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #ff8c32 0%, #ff4d00 100%);
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
     font-weight: 700;
     color: #fff;
+    box-shadow: 0 2px 12px rgba(255, 140, 50, 0.3);
   }}
 
   .card .title {{
     font-size: 17px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: #f0f0f4;
     line-height: 1.5;
     flex: 1;
   }}
 
   .card .summary {{
     font-size: 14px;
-    color: #666;
+    color: #888;
     line-height: 1.7;
-    margin-bottom: 12px;
-    padding-left: 40px;
+    margin-bottom: 14px;
+    padding-left: 42px;
     padding-right: 30px;
   }}
 
@@ -338,24 +455,25 @@ def generate_html(news_list):
     display: flex;
     align-items: center;
     gap: 16px;
-    padding-left: 40px;
+    padding-left: 42px;
     font-size: 12px;
-    color: #aaa;
+    color: #555;
   }}
 
   .card .meta .source {{
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: #f0f3ff;
-    color: #667eea;
-    padding: 3px 10px;
+    background: rgba(255, 140, 50, 0.10);
+    color: #ff8c32;
+    padding: 4px 12px;
     border-radius: 20px;
     font-weight: 500;
+    border: 1px solid rgba(255, 140, 50, 0.12);
   }}
 
   .card .meta .time {{
-    color: #bbb;
+    color: #444;
   }}
 
   /* 底部 */
@@ -363,31 +481,43 @@ def generate_html(news_list):
     text-align: center;
     margin-top: 40px;
     padding: 20px;
-    color: #bbb;
+    color: #333;
     font-size: 12px;
   }}
 
   /* 响应式 */
   @media (max-width: 600px) {{
-    .container {{ padding: 0 8px; }}
+    .hero {{ padding: 48px 0 28px; }}
+    .hero h1 {{ font-size: 30px; }}
+    .container {{ padding: 0 14px; }}
     .card {{ padding: 18px 16px; }}
     .card .summary, .card .meta {{ padding-left: 0; }}
     .card .index {{ display: none; }}
     .card .card-header {{ padding-right: 24px; }}
     .card::after {{ right: 16px; }}
-    .header h1 {{ font-size: 22px; }}
+    .stats-bar {{ gap: 12px; }}
+    .stat-item {{ padding: 12px 18px; min-width: 80px; }}
+    .stat-item .num {{ font-size: 22px; }}
   }}
 </style>
 </head>
 <body>
 
+<!-- 背景光效 -->
+<div class="bg-lights">
+  <div class="beam-left"></div>
+  <div class="beam-right"></div>
+  <div class="glow-top"></div>
+</div>
+
 <div class="container">
-  <!-- 头部 -->
-  <div class="header">
-    <div class="logo">
-      <div class="logo-icon">AI</div>
+  <!-- Hero 头部 -->
+  <div class="hero">
+    <div class="top-pills">
+      <span class="pill pill-active">AI Daily</span>
+      <span class="pill">Tech News</span>
     </div>
-    <h1>今日 AI 资讯</h1>
+    <h1>探索 <span class="highlight">AI</span> 的无限可能</h1>
     <p class="date">{date_str}</p>
   </div>
 
