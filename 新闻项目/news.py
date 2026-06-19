@@ -143,7 +143,7 @@ def fetch_news_from_rss(feed, max_items=15, max_retries=3):
                 })
             return articles
         except Exception as e:
-            print(f"  ⚠ 抓取 {feed['name']} 失败 (尝试 {attempt+1}/{max_retries}): {str(e)[:80]}")
+            print(f"  [WARN] 抓取 {feed['name']} 失败 (尝试 {attempt+1}/{max_retries}): {str(e)[:80]}")
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)  # 指数退避：1s, 2s, 4s
             else:
@@ -562,12 +562,12 @@ def generate_html(news_list):
 def job():
     """定时执行的抓取任务（每天早上 08:00 触发）"""
     print(f"\n{'='*50}")
-    print(f"🌟 定时任务触发... {datetime.now()}")
+    print(f"[START] 定时任务触发... {datetime.now()}")
     print(f"{'='*50}")
 
     all_news = []
     for feed in RSS_FEEDS:
-        print(f"  📡 正在抓取: {feed['name']}")
+        print(f"  [FETCH] 正在抓取: {feed['name']}")
         news = fetch_news_from_rss(feed, max_items=15)
         all_news.extend(news)
         if news:
@@ -576,11 +576,11 @@ def job():
         else:
             print(f"    → 0 条")
 
-    print(f"\n📊 共抓取 {len(all_news)} 条原始新闻")
+    print(f"\n[DATA] 共抓取 {len(all_news)} 条原始新闻")
 
     # 如果所有源都失败，不生成 HTML（保持上次的内容不变）
     if not all_news:
-        print("❌ 所有 RSS 源均抓取失败，跳过本次更新（保留旧页面）")
+        print("[FAIL] 所有 RSS 源均抓取失败，跳过本次更新（保留旧页面）")
         return
 
     # 去重（按标题，取最新的那条）
@@ -599,37 +599,37 @@ def job():
     # 统计新鲜度
     today = datetime.now().strftime('%Y-%m-%d')
     fresh_count = sum(1 for n in unique_news if is_fresh(n['time'], max_days=1))
-    print(f"  🆕 今日+昨日新闻: {fresh_count} 条 / 共 {len(unique_news)} 条去重")
+    print(f"  [NEW] 今日+昨日新闻: {fresh_count} 条 / 共 {len(unique_news)} 条去重")
 
     # AI 关键词过滤：只保留与 AI 相关的新闻
     ai_news = [n for n in unique_news if is_ai_related(n)]
-    print(f"  🤖 其中 AI 相关新闻: {len(ai_news)} 条")
+    print(f"  [AI] 其中 AI 相关新闻: {len(ai_news)} 条")
 
     if not ai_news:
-        print("❌ 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
+        print("[FAIL] 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
         return
 
     # 最终取前 40 条（让内容更丰富）
     news_list = ai_news[:40]
 
     generate_html(news_list)
-    print(f"✅ 本次更新完成 {datetime.now()}\n")
+    print(f"[OK] 本次更新完成 {datetime.now()}\n")
 
 
 def main():
     # 支持 --once 参数：运行一次后退出（供 GitHub Actions 使用）
     if '--once' in sys.argv:
         print(f"\n{'='*50}")
-        print(f"🔁 单次运行模式 (--once)")
+        print(f"[ONCE] 单次运行模式 (--once)")
         print(f"{'='*50}")
         job()
         return
 
     print(f"\n{'='*50}")
-    print(f"🤖 AI 资讯自动刷新服务启动")
-    print(f"📅 启动时间: {datetime.now()}")
-    print(f"⏰ 定时任务: 每天 08:00 自动刷新")
-    print(f"📁 输出文件: {OUTPUT_FILE}")
+    print(f"[AI] AI 资讯自动刷新服务启动")
+    print(f"[DATE] 启动时间: {datetime.now()}")
+    print(f"[TIME] 定时任务: 每天 08:00 自动刷新")
+    print(f"[FILE] 输出文件: {OUTPUT_FILE}")
     print(f"{'='*50}\n")
 
     # 启动时先立即执行一次（首次运行或手动重启时立即生效）
@@ -637,16 +637,16 @@ def main():
 
     # 设置定时任务：每天早上 8:00
     schedule.every().day.at("08:00").do(job)
-    print("⏳ 定时任务已注册，程序将持续运行...")
-    print("   💡 保持此窗口打开，每天 08:00 会自动刷新")
-    print("   💡 按 Ctrl+C 可安全停止服务\n")
+    print("[WAIT] 定时任务已注册，程序将持续运行...")
+    print("   [TIP] 保持此窗口打开，每天 08:00 会自动刷新")
+    print("   [TIP] 按 Ctrl+C 可安全停止服务\n")
 
     try:
         while True:
             schedule.run_pending()
             time.sleep(60)  # 每分钟检查一次，避免 CPU 空转
     except KeyboardInterrupt:
-        print(f"\n🛑 服务已手动停止 ({datetime.now()})")
+        print(f"\n[STOP] 服务已手动停止 ({datetime.now()})")
         sys.exit(0)
 
 
