@@ -609,23 +609,32 @@ def job():
         print("[FAIL] 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
         return
 
-    # 新鲜度过滤：优先当天新闻，不够再补昨天的
+    # 新鲜度过滤 + 排序：今天的优先，昨天的限数量
     today_news = [n for n in ai_news if is_fresh(n['time'], max_days=0)]
-    today_yesterday = [n for n in ai_news if is_fresh(n['time'], max_days=1)]
+    yesterday_news = [n for n in ai_news if is_fresh(n['time'], max_days=1) and not is_fresh(n['time'], max_days=0)]
+    older_news = [n for n in ai_news if is_fresh(n['time'], max_days=2) and not is_fresh(n['time'], max_days=1)]
 
     print(f"  [TODAY] 当天新闻: {len(today_news)} 条")
-    print(f"  [FRESH] 今+昨新闻: {len(today_yesterday)} 条")
+    print(f"  [YEST] 昨日新闻: {len(yesterday_news)} 条")
 
-    if len(today_news) >= 10:
-        # 当天新闻够10条，只用当天的
-        news_list = today_news[:40]
-    elif len(today_yesterday) >= 5:
-        # 当天不够，用今天+昨天的
-        news_list = today_yesterday[:40]
+    # 组合：今天所有 + 昨天最多10条
+    limit_yesterday = max(0, 30 - len(today_news))  # 总上限40条，留给昨天的位置
+    limit_yesterday = min(limit_yesterday, 10)      # 但昨天最多10条
+
+    if len(today_news) >= 5:
+        # 今天有5条以上，只补少量昨天的
+        news_list = today_news + yesterday_news[:limit_yesterday]
+    elif len(today_news) + len(yesterday_news) >= 5:
+        # 今天不够，混合今天+昨天，但昨天最多15条
+        news_list = today_news + yesterday_news[:15]
     else:
-        # 太少的话放宽到2天
-        news_list = [n for n in ai_news if is_fresh(n['time'], max_days=2)][:40]
+        # 实在太少，放宽到2天
+        news_list = today_news + yesterday_news[:15] + older_news[:10]
         print(f"  [WARN] 当日新闻太少，放宽到2天内: {len(news_list)} 条")
+
+    if not news_list:
+        print("[FAIL] 过滤后无有效新闻，跳过本次更新（保留旧页面）")
+        return
 
     if not news_list:
         print("[FAIL] 过滤后无有效新闻，跳过本次更新（保留旧页面）")
