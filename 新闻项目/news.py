@@ -609,8 +609,8 @@ def job():
         print("❌ 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
         return
 
-    # 最终取前 20 条（但尽量让新鲜内容排前面）
-    news_list = ai_news[:20]
+    # 最终取前 40 条（让内容更丰富）
+    news_list = ai_news[:40]
 
     generate_html(news_list)
     print(f"✅ 本次更新完成 {datetime.now()}\n")
