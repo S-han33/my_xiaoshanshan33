@@ -609,8 +609,27 @@ def job():
         print("[FAIL] 没有找到 AI 相关新闻，跳过本次更新（保留旧页面）")
         return
 
-    # 最终取前 40 条（让内容更丰富）
-    news_list = ai_news[:40]
+    # 新鲜度过滤：优先当天新闻，不够再补昨天的
+    today_news = [n for n in ai_news if is_fresh(n['time'], max_days=0)]
+    today_yesterday = [n for n in ai_news if is_fresh(n['time'], max_days=1)]
+
+    print(f"  [TODAY] 当天新闻: {len(today_news)} 条")
+    print(f"  [FRESH] 今+昨新闻: {len(today_yesterday)} 条")
+
+    if len(today_news) >= 10:
+        # 当天新闻够10条，只用当天的
+        news_list = today_news[:40]
+    elif len(today_yesterday) >= 5:
+        # 当天不够，用今天+昨天的
+        news_list = today_yesterday[:40]
+    else:
+        # 太少的话放宽到2天
+        news_list = [n for n in ai_news if is_fresh(n['time'], max_days=2)][:40]
+        print(f"  [WARN] 当日新闻太少，放宽到2天内: {len(news_list)} 条")
+
+    if not news_list:
+        print("[FAIL] 过滤后无有效新闻，跳过本次更新（保留旧页面）")
+        return
 
     generate_html(news_list)
     print(f"[OK] 本次更新完成 {datetime.now()}\n")
