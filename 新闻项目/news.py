@@ -24,7 +24,7 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
     'Accept': 'application/rss+xml, application/xml, text/xml, */*;q=0.9',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Encoding': 'gzip, deflate',
     'Connection': 'keep-alive',
 }
 
@@ -107,12 +107,14 @@ def fetch_news_from_rss(feed, max_items=15, max_retries=3):
             response = requests.get(feed['url'], timeout=15, headers=HEADERS)
             response.raise_for_status()
             
+            # 强制以 UTF-8 解码（requests 自动检测可能出错，导致中文乱码）
+            response.encoding = 'utf-8'
+            
             # 防御：检查返回的是否为 XML，防止拿到 HTML 错误页
             text_start = response.text.strip()[:200].lower()
             if not (text_start.startswith('<?xml') or '<rss' in text_start or '<feed' in text_start):
                 raise ValueError(f"返回内容不是 XML: {text_start[:50]}")
             
-            response.encoding = 'utf-8'
             root = ET.fromstring(response.text)
 
             articles = []
