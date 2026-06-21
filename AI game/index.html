@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI知识大冒险</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decoration">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
+    </div>
+
+    <!-- 主菜单 -->
+    <div id="menu-screen" class="screen active">
+        <div class="logo">
+            <div class="logo-icon">🤖</div>
+            <h1>AI知识大冒险</h1>
+            <p class="subtitle">✨ 测试你的AI知识储备 ✨</p>
+        </div>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" onclick="showRules('level')">
+                <span class="btn-icon">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="levelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#FFD93D"/>
+                                <stop offset="100%" style="stop-color:#FF8C42"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="32" cy="32" r="28" fill="url(#levelGrad)" opacity="0.2"/>
+                        <path d="M32 8L38 20H52L40 30L44 44L32 36L20 44L24 30L12 20H26L32 8Z" fill="url(#levelGrad)"/>
+                        <circle cx="32" cy="32" r="8" fill="white"/>
+                        <path d="M32 24V40M24 32H40" stroke="url(#levelGrad)" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="btn-text">闯关模式</span>
+                <span class="btn-desc">5条命，你能闯到第几关？</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showRules('practice')">
+                <span class="btn-icon">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="practiceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#00D4FF"/>
+                                <stop offset="100%" style="stop-color:#22D3EE"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="32" cy="32" r="28" fill="url(#practiceGrad)" opacity="0.2"/>
+                        <rect x="16" y="12" width="32" height="40" rx="4" fill="url(#practiceGrad)"/>
+                        <rect x="20" y="18" width="24" height="3" rx="1.5" fill="white"/>
+                        <rect x="20" y="24" width="18" height="3" rx="1.5" fill="white" opacity="0.8"/>
+                        <rect x="20" y="30" width="22" height="3" rx="1.5" fill="white" opacity="0.6"/>
+                        <circle cx="32" cy="42" r="4" fill="white"/>
+                        <path d="M30 42L32 44L34 40" stroke="url(#practiceGrad)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span class="btn-text">刷题模式</span>
+                <span class="btn-desc">80道题，做完看成绩</span>
+            </button>
+        </div>
+        <div class="stats-preview">
+            <div class="stat-item">
+                <span class="stat-number">80</span>
+                <span class="stat-label">道题目</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">7</span>
+                <span class="stat-label">大分类</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">3</span>
+                <span class="stat-label">个难度</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏界面 -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div class="header-left">
+                <button class="back-btn" onclick="backToMenu()">← 返回</button>
+            </div>
+            <div class="header-center">
+                <div id="mode-badge" class="mode-badge">闯关模式</div>
+            </div>
+            <div class="header-right">
+                <div id="lives-display" class="lives-display">
+                    <span class="heart">❤️</span>
+                    <span id="lives-count">5</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-info">
+                <span id="question-counter">第 1 / 80 题</span>
+                <span id="score-display">得分: 0</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="question-section">
+            <div id="category-tag" class="category-tag">🤖 AI基础概念</div>
+            <div id="difficulty-tag" class="difficulty-tag">⭐ 入门</div>
+            <div id="question-text" class="question-text">这里是题目内容...</div>
+        </div>
+
+        <div id="options-container" class="options-container">
+            <!-- 选项会动态生成 -->
+        </div>
+
+        <div id="feedback-section" class="feedback-section hidden">
+            <div id="feedback-icon" class="feedback-icon"></div>
+            <div id="feedback-text" class="feedback-text"></div>
+            <div id="explanation-text" class="explanation-text"></div>
+            <button id="next-btn" class="btn btn-next" onclick="nextQuestion()">下一题 →</button>
+        </div>
+    </div>
+
+    <!-- 结果页面 -->
+    <div id="result-screen" class="screen">
+        <div class="result-content">
+            <div id="result-icon" class="result-icon">🎉</div>
+            <h2 id="result-title">太棒了！</h2>
+            <div id="result-stats" class="result-stats">
+                <!-- 动态生成 -->
+            </div>
+            <div class="result-message" id="result-message">
+                <!-- 动态生成 -->
+            </div>
+            <div class="result-buttons">
+                <button class="btn btn-primary" onclick="restartGame()">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">再来一次</span>
+                </button>
+                <button class="btn btn-secondary" onclick="backToMenu()">
+                    <span class="btn-icon">🏠</span>
+                    <span class="btn-text">返回首页</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束（闯关模式） -->
+    <div id="gameover-screen" class="screen">
+        <div class="result-content">
+            <div class="result-icon">😢</div>
+            <h2>游戏结束</h2>
+            <div id="gameover-stats" class="result-stats">
+                <!-- 动态生成 -->
+            </div>
+            <div class="result-message" id="gameover-message">
+                <!-- 动态生成 -->
+            </div>
+            <div class="result-buttons">
+                <button class="btn btn-primary" onclick="restartGame()">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">重新挑战</span>
+                </button>
+                <button class="btn btn-secondary" onclick="backToMenu()">
+                    <span class="btn-icon">🏠</span>
+                    <span class="btn-text">返回首页</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏规则弹窗 -->
+    <div id="rules-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div id="modal-icon" class="modal-icon">🎮</div>
+                <h2 id="modal-title">游戏规则</h2>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- 动态生成 -->
+            </div>
+            <button class="btn btn-confirm" onclick="confirmRules()">我知道了，开始游戏</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

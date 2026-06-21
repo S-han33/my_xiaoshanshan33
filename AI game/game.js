@@ -1,0 +1,475 @@
+// 游戏状态
+let gameState = {
+    mode: 'level', // 'level' 或 'practice'
+    currentQuestion: 0,
+    score: 0,
+    lives: 5,
+    correctCount: 0,
+    wrongCount: 0,
+    questions: [],
+    isAnswered: false,
+    currentQuestionData: null
+};
+
+// 题库数据
+const questionsData = [
+  {"id":1,"category":"ai_basics","difficulty":1,"question":"AI的全称是什么？","options":["Artificial Intelligence","Auto Input","Advanced Internet","Applied Information"],"answer":0,"explanation":"AI是Artificial Intelligence的缩写，中文叫人工智能，是指让机器模拟人类智能的技术。"},
+  {"id":2,"category":"ai_basics","difficulty":1,"question":"以下哪个是AI的典型应用？","options":["智能语音助手","Excel表格","Word文档","文件夹管理"],"answer":0,"explanation":"智能语音助手（如Siri、小爱同学）是AI的典型应用，能理解语音并做出回应。"},
+  {"id":3,"category":"ai_basics","difficulty":1,"question":"什么是机器学习？","options":["让机器从数据中自动学习规律","让人学习使用机器","修理机器的技术","机器的物理运动"],"answer":0,"explanation":"机器学习是AI的一个分支，让计算机从数据中自动发现规律并做出预测或决策。"},
+  {"id":4,"category":"ai_basics","difficulty":1,"question":"深度学习是哪个领域的分支？","options":["机器学习","网页设计","数据库管理","操作系统"],"answer":0,"explanation":"深度学习是机器学习的一个子领域，使用多层神经网络来学习数据的复杂模式。"},
+  {"id":5,"category":"ai_basics","difficulty":1,"question":"以下哪个不是AI的三大流派之一？","options":["符号主义","连接主义","行为主义","实用主义"],"answer":3,"explanation":"AI三大流派是符号主义（逻辑推理）、连接主义（神经网络）、行为主义（进化适应），没有实用主义。"},
+  {"id":6,"category":"ai_basics","difficulty":2,"question":"什么是神经网络？","options":["模仿人脑结构的计算模型","互联网的基础设施","计算机硬件组件","数据库的连接方式"],"answer":0,"explanation":"神经网络是受人脑神经元结构启发的计算模型，由大量相互连接的节点组成，能学习复杂模式。"},
+  {"id":7,"category":"ai_basics","difficulty":2,"question":"监督学习需要什么数据？","options":["带标签的数据","没有任何标签的数据","只有图片数据","只有音频数据"],"answer":0,"explanation":"监督学习需要带标签的数据，即每个数据都对应一个正确答案，让模型学习输入与输出的关系。"},
+  {"id":8,"category":"ai_basics","difficulty":2,"question":"什么是过拟合？","options":["模型在训练集表现好但泛化能力差","模型太简单无法学习","训练时间太长","数据量太大"],"answer":0,"explanation":"过拟合是指模型过度学习了训练数据的细节和噪声，导致在新数据上表现不好。"},
+  {"id":9,"category":"ai_basics","difficulty":2,"question":"以下哪个是无监督学习的例子？","options":["客户分群","图像分类","语音识别","垃圾邮件过滤"],"answer":0,"explanation":"客户分群是无监督学习，不需要预先定义标签，让AI自己发现数据中的模式和分组。"},
+  {"id":10,"category":"ai_basics","difficulty":3,"question":"什么是GAN（生成对抗网络）？","options":["两个网络相互竞争的生成模型","一种加密算法","一种数据库结构","一种网络协议"],"answer":0,"explanation":"GAN由生成器和判别器组成，两者相互竞争，生成器试图生成逼真数据，判别器试图分辨真假。"},
+  {"id":11,"category":"ai_basics","difficulty":3,"question":"什么是强化学习？","options":["通过奖励和惩罚让模型学习","加强模型的计算能力","让模型学习更多数据","加快模型的训练速度"],"answer":0,"explanation":"强化学习是让模型通过与环境交互，根据获得的奖励或惩罚来学习最优策略。"},
+  {"id":12,"category":"ai_basics","difficulty":3,"question":"什么是迁移学习？","options":["将一个任务学到的知识应用到新任务","将数据从一个服务器迁移到另一个","将模型从本地部署到云端","将代码从一种语言翻译成另一种"],"answer":0,"explanation":"迁移学习是将在一个任务上训练好的模型知识，应用到另一个相关任务上，可以节省训练时间和数据。"},
+  {"id":13,"category":"llm","difficulty":1,"question":"LLM是什么的缩写？","options":["Large Language Model","Low Level Memory","Long Life Machine","Light Language Module"],"answer":0,"explanation":"LLM是Large Language Model的缩写，中文叫大语言模型，是当前最热门的AI技术之一。"},
+  {"id":14,"category":"llm","difficulty":1,"question":"以下哪个是著名的大语言模型？","options":["GPT","HTML","CSS","SQL"],"answer":0,"explanation":"GPT（Generative Pre-trained Transformer）是OpenAI开发的大语言模型，是目前最知名的AI模型之一。"},
+  {"id":15,"category":"llm","difficulty":1,"question":"ChatGPT是哪家公司开发的？","options":["OpenAI","Google","Microsoft","Apple"],"answer":0,"explanation":"ChatGPT是OpenAI公司开发的AI聊天机器人，基于GPT系列模型。"},
+  {"id":16,"category":"llm","difficulty":1,"question":"大语言模型最基础的任务是什么？","options":["预测下一个词","翻译语言","编写代码","生成图片"],"answer":0,"explanation":"大语言模型最基础的任务是预测下一个词（Token），所有复杂能力都建立在这个基础之上。"},
+  {"id":17,"category":"llm","difficulty":2,"question":"什么是Token？","options":["文本被分割成的最小单位","一种加密货币","网站的登录凭证","数据库的主键"],"answer":0,"explanation":"Token是大语言模型处理文本的最小单位，一个汉字通常是一个Token，一个英文单词可能是1-2个Token。"},
+  {"id":18,"category":"llm","difficulty":2,"question":"什么是上下文窗口（Context Window）？","options":["模型一次能处理的最大Token数","电脑屏幕的显示区域","浏览器的窗口大小","数据库的查询范围"],"answer":0,"explanation":"上下文窗口是模型一次能'看到'并处理的最大Token数量，决定了模型能记住多少对话内容。"},
+  {"id":19,"category":"llm","difficulty":2,"question":"什么是Temperature参数？","options":["控制AI回答随机性的参数","服务器的温度设置","训练数据的热度","模型的计算速度"],"answer":0,"explanation":"Temperature控制AI回答的随机性，值越低回答越确定和保守，值越高回答越有创意和随机。"},
+  {"id":20,"category":"llm","difficulty":2,"question":"什么是幻觉（Hallucination）？","options":["AI生成看似合理但错误的内容","AI看到不存在的东西","AI的视觉识别错误","AI的记忆功能故障"],"answer":0,"explanation":"幻觉是指AI生成的内容看起来很合理，但实际上是错误的或编造的，这是当前大模型的主要问题之一。"},
+  {"id":21,"category":"llm","difficulty":3,"question":"Transformer架构的核心机制是什么？","options":["自注意力机制","循环神经网络","卷积神经网络","决策树"],"answer":0,"explanation":"Transformer的核心是自注意力机制（Self-Attention），能让模型关注输入序列中任意位置的信息。"},
+  {"id":22,"category":"llm","difficulty":3,"question":"什么是KV Cache？","options":["加速推理的键值缓存技术","数据库缓存机制","网页浏览缓存","文件系统缓存"],"answer":0,"explanation":"KV Cache是在推理过程中缓存已计算的Key和Value，避免重复计算，大幅提升生成速度。"},
+  {"id":23,"category":"llm","difficulty":3,"question":"什么是MoE（混合专家）架构？","options":["多个专家模型协同工作","单一模型的多个版本","模型的多种训练方式","模型的部署方式"],"answer":0,"explanation":"MoE架构将模型分成多个'专家'，每次只激活部分专家进行计算，可以在不增加计算量的情况下扩大模型容量。"},
+  {"id":24,"category":"prompt","difficulty":1,"question":"什么是Prompt？","options":["你给AI的指令或问题","AI的名称","AI的训练数据","AI的运行环境"],"answer":0,"explanation":"Prompt是用户输入给AI的指令、问题或上下文，是与AI交流的主要方式。"},
+  {"id":25,"category":"prompt","difficulty":1,"question":"什么是提示工程？","options":["设计和优化Prompt的技术","编写程序的技术","建造工程的技术","管理项目的技能"],"answer":0,"explanation":"提示工程（Prompt Engineering）是设计和优化Prompt的艺术和科学，让AI生成更好的回答。"},
+  {"id":26,"category":"prompt","difficulty":1,"question":"以下哪种Prompt方式效果通常更好？","options":["请用简单的语言解释量子物理","解释量子物理","量子物理","说说物理"],"answer":0,"explanation":"更具体、明确的指令通常能得到更好的结果，'请用简单的语言解释'提供了角色和风格要求。"},
+  {"id":27,"category":"prompt","difficulty":2,"question":"什么是零样本提示（Zero-shot Prompting）？","options":["不给任何示例直接提问","给0个示例后提问","删除所有示例","使用零成本的提示"],"answer":0,"explanation":"零样本提示是直接向模型提问，不提供任何示例，让模型依靠预训练知识回答。"},
+  {"id":28,"category":"prompt","difficulty":2,"question":"什么是少样本提示（Few-shot Prompting）？","options":["给模型几个示例后再提问","只给很少的提示","用少量文字提问","只问很少的问题"],"answer":0,"explanation":"少样本提示是在提问前给模型几个输入输出的示例，帮助模型理解你想要的格式和风格。"},
+  {"id":29,"category":"prompt","difficulty":2,"question":"什么是思维链（Chain of Thought）提示？","options":["让AI一步一步思考问题","让AI快速回答","让AI重复问题","让AI总结答案"],"answer":0,"explanation":"思维链提示让AI展示推理过程，一步一步思考复杂问题，能显著提高回答的准确性。"},
+  {"id":30,"category":"prompt","difficulty":3,"question":"什么是角色扮演提示？","options":["让AI扮演特定角色来回答问题","用户扮演AI的角色","AI模仿用户的声音","AI改变自己的身份"],"answer":0,"explanation":"角色扮演提示是让AI假设自己是某个专家（如'你是一位资深医生'），能使回答更专业和聚焦。"},
+  {"id":31,"category":"prompt","difficulty":3,"question":"什么是RAG（检索增强生成）？","options":["让AI先检索资料再生成回答","让AI重复生成内容","让AI随机生成答案","让AI删除旧内容"],"answer":0,"explanation":"RAG是让AI先从知识库中检索相关信息，再基于检索结果生成回答，能减少幻觉并提供更准确的信息。"},
+  {"id":32,"category":"aigc","difficulty":1,"question":"AIGC是什么意思？","options":["AI生成内容","AI控制中心","AI操作系统","AI网络"],"answer":0,"explanation":"AIGC是AI Generated Content的缩写，指AI自动生成的内容，如文本、图片、视频、音乐等。"},
+  {"id":33,"category":"aigc","difficulty":1,"question":"以下哪个是AIGC的应用？","options":["AI绘画","Excel计算","文件备份","网页浏览"],"answer":0,"explanation":"AI绘画是AIGC的典型应用，如Midjourney、DALL-E等工具可以根据文字描述生成图片。"},
+  {"id":34,"category":"aigc","difficulty":1,"question":"什么是UGC？","options":["用户生成内容","AI生成内容","专业生成内容","机器生成内容"],"answer":0,"explanation":"UGC是User Generated Content的缩写，指普通用户创作的内容，如抖音视频、微博帖子等。"},
+  {"id":35,"category":"aigc","difficulty":2,"question":"什么是扩散模型（Diffusion Model）？","options":["通过加噪和去噪过程生成内容的模型","让数据扩散到更多服务器的模型","让病毒传播的模型","让信息快速传播的模型"],"answer":0,"explanation":"扩散模型通过先给数据加噪声，再学习如何去除噪声来生成新内容，是目前最流行的图像生成模型架构。"},
+  {"id":36,"category":"aigc","difficulty":2,"question":"Midjourney主要用于生成什么？","options":["图片","文字","音乐","视频"],"answer":0,"explanation":"Midjourney是一个AI绘画工具，可以根据文字描述生成高质量的图片。"},
+  {"id":37,"category":"aigc","difficulty":2,"question":"什么是文生图（Text-to-Image）？","options":["用文字描述生成图片","把图片转换成文字","给图片添加文字","删除图片中的文字"],"answer":0,"explanation":"文生图是指根据用户输入的文字描述，AI自动生成对应图片的技术。"},
+  {"id":38,"category":"aigc","difficulty":3,"question":"什么是LoRA微调？","options":["用少量数据快速定制大模型的方法","一种新的加密技术","一种数据库优化方法","一种网络加速技术"],"answer":0,"explanation":"LoRA（Low-Rank Adaptation）是一种高效微调方法，通过在原模型上添加少量可训练参数，用少量数据就能定制模型。"},
+  {"id":39,"category":"aigc","difficulty":3,"question":"什么是多模态（Multimodal）？","options":["能同时处理文本、图片、音频等多种类型数据","只能处理一种数据","数据有多个模式","网络有多个连接"],"answer":0,"explanation":"多模态是指AI能同时理解和处理多种类型的数据，如文字、图片、音频、视频等。"},
+  {"id":40,"category":"aigc","difficulty":3,"question":"什么是CLIP模型？","options":["能理解图片和文字关系的模型","一种图片压缩算法","一种文字识别技术","一种视频编码方式"],"answer":0,"explanation":"CLIP是OpenAI开发的模型，能理解图片和文字之间的对应关系，是文生图技术的重要基础。"},
+  {"id":41,"category":"training","difficulty":1,"question":"AI模型训练需要什么？","options":["大量的数据","大量的纸张","大量的电灯","大量的手机"],"answer":0,"explanation":"AI模型训练需要大量的数据作为学习材料，数据质量和数量直接影响模型效果。"},
+  {"id":42,"category":"training","difficulty":1,"question":"什么是预训练？","options":["在大规模数据上先训练基础能力","提前训练防止忘记","训练前的热身运动","训练后的复习"],"answer":0,"explanation":"预训练是在大规模数据上训练模型的基础能力，让模型学会语言理解、知识推理等通用技能。"},
+  {"id":43,"category":"training","difficulty":2,"question":"什么是SFT（监督微调）？","options":["用高质量对话数据微调模型","让模型学习新的编程语言","让模型学习新的数学公式","让模型学习新的物理定律"],"answer":0,"explanation":"SFT（Supervised Fine-Tuning）是用人工标注的高质量对话数据来微调模型，让它学会更好地与人交流。"},
+  {"id":44,"category":"training","difficulty":2,"question":"什么是RLHF？","options":["用人类反馈来训练模型的方法","用机器反馈训练模型","用随机数据训练模型","用历史数据训练模型"],"answer":0,"explanation":"RLHF（Reinforcement Learning from Human Feedback）是用人类对模型回答的评价来训练模型，让模型更符合人类偏好。"},
+  {"id":45,"category":"training","difficulty":2,"question":"什么是量化（Quantization）？","options":["降低模型精度来减小体积和加快速度","增加模型的计算量","扩大模型的参数量","增加模型的训练时间"],"answer":0,"explanation":"量化是将模型参数从高精度（如32位浮点数）转换为低精度（如8位整数），可以大幅减小模型体积并加快推理速度。"},
+  {"id":46,"category":"training","difficulty":3,"question":"什么是DPO（直接偏好优化）？","options":["比RLHF更简单的对齐方法","一种数据清洗方法","一种模型压缩技术","一种网络优化协议"],"answer":0,"explanation":"DPO是一种比RLHF更简单的模型对齐方法，不需要训练奖励模型，直接用偏好数据优化模型。"},
+  {"id":47,"category":"training","difficulty":3,"question":"什么是Scaling Law？","options":["模型性能随规模增大的可预测规律","模型的缩放比例","数据的缩放规则","网络的扩展定律"],"answer":0,"explanation":"Scaling Law是指模型性能会随着参数量、数据量、计算量的增加而可预测地提升，这指导了大模型的发展方向。"},
+  {"id":48,"category":"application","difficulty":1,"question":"以下哪个是AI聊天机器人？","options":["ChatGPT","Photoshop","Word","Excel"],"answer":0,"explanation":"ChatGPT是OpenAI开发的AI聊天机器人，可以进行对话、回答问题、创作内容等。"},
+  {"id":49,"category":"application","difficulty":1,"question":"什么是AI助手？","options":["能帮助人完成任务的AI程序","人类的助手","机器人的助手","电脑的配件"],"answer":0,"explanation":"AI助手是能理解人类语言并帮助完成各种任务的AI程序，如聊天、搜索、写作、编程等。"},
+  {"id":50,"category":"application","difficulty":1,"question":"以下哪个不是AI应用？","options":["计算器","智能客服","语音助手","人脸识别"],"answer":0,"explanation":"计算器是基于固定算法的程序，不需要学习和推理，不属于AI应用。"},
+  {"id":51,"category":"application","difficulty":2,"question":"什么是AI Agent（智能体）？","options":["能自主完成多步任务的AI系统","AI的另一个名字","AI的管理员","AI的安全系统"],"answer":0,"explanation":"AI Agent是能自主规划、决策和执行任务的AI系统，可以调用工具、搜索信息、完成复杂任务。"},
+  {"id":52,"category":"application","difficulty":2,"question":"以下哪个是国产AI大模型？","options":["Kimi","GPT","Claude","Gemini"],"answer":0,"explanation":"Kimi是月之暗面公司开发的国产AI大模型，GPT是OpenAI的，Claude是Anthropic的，Gemini是Google的。"},
+  {"id":53,"category":"application","difficulty":2,"question":"什么是Copilot？","options":["AI编程助手","飞行员","副驾驶员","导航软件"],"answer":0,"explanation":"Copilot是AI编程助手，能根据上下文自动补全代码、生成代码片段，帮助程序员提高效率。"},
+  {"id":54,"category":"application","difficulty":3,"question":"什么是MCP（模型上下文协议）？","options":["让AI模型连接外部工具的标准协议","一种编程语言","一种数据库","一种操作系统"],"answer":0,"explanation":"MCP是一种让AI模型连接外部工具和数据源的标准协议，让AI能更好地与外部世界交互。"},
+  {"id":55,"category":"application","difficulty":3,"question":"什么是向量数据库？","options":["存储和检索向量数据的数据库","存储图片的数据库","存储视频的数据库","存储音频的数据库"],"answer":0,"explanation":"向量数据库是专门存储和检索向量（embedding）的数据库，是RAG和AI搜索的重要基础设施。"},
+  {"id":56,"category":"frontier","difficulty":1,"question":"什么是AGI？","options":["通用人工智能","人工智能公司","AI的型号","AI的版本"],"answer":0,"explanation":"AGI（Artificial General Intelligence）是通用人工智能，指能像人类一样在任意智力任务上达到或超过人类水平的AI，目前还未实现。"},
+  {"id":57,"category":"frontier","difficulty":1,"question":"2026年最火的AI技术趋势是什么？","options":["大语言模型","云计算","区块链","物联网"],"answer":0,"explanation":"大语言模型（LLM）是2026年最火的AI技术趋势，从ChatGPT到各种AI应用都在快速发展。"},
+  {"id":58,"category":"frontier","difficulty":2,"question":"什么是具身智能？","options":["有物理形态的AI","虚拟世界的AI","云端的AI","嵌入式设备的AI"],"answer":0,"explanation":"具身智能是指AI拥有物理形态（如机器人），能在真实世界中感知和行动，是AI发展的重要方向。"},
+  {"id":59,"category":"frontier","difficulty":2,"question":"什么是世界模型？","options":["能理解物理世界运行规律的AI模型","AI的训练环境","AI的运行平台","AI的数据库"],"answer":0,"explanation":"世界模型是能让AI理解物理世界因果关系和运行规律的模型，是实现更高级AI的关键技术。"},
+  {"id":60,"category":"frontier","difficulty":3,"question":"什么是合成数据？","options":["AI生成的训练数据","人工制作的数据","从互联网爬取的数据","数据库中的虚拟数据"],"answer":0,"explanation":"合成数据是AI自己生成的数据，用于训练其他AI模型，可以解决真实数据不足和隐私问题。"},
+  {"id":61,"category":"frontier","difficulty":3,"question":"什么是小模型（Small Language Model）？","options":["参数量较小但高效的AI模型","免费的AI模型","开源的AI模型","没有训练数据的模型"],"answer":0,"explanation":"小模型是指参数量相对较小（如几亿到几十亿参数）的语言模型，可以在手机、电脑等设备上本地运行，成本更低。"},
+  {"id":62,"category":"ai_basics","difficulty":1,"question":"AI技术最早是在哪个年代发展起来的？","options":["20世纪50-60年代","21世纪初","19世纪末","20世纪90年代"],"answer":0,"explanation":"AI概念最早在1956年达特茅斯会议上提出，20世纪50-60年代是AI的起步阶段。"},
+  {"id":63,"category":"ai_basics","difficulty":2,"question":"什么是卷积神经网络（CNN）？","options":["擅长处理图像的神经网络","擅长处理文字的神经网络","擅长处理音频的神经网络","擅长处理视频的神经网络"],"answer":0,"explanation":"CNN是专门用于处理图像数据的神经网络，能自动提取图像特征，广泛用于图像识别、分类等任务。"},
+  {"id":64,"category":"ai_basics","difficulty":2,"question":"什么是循环神经网络（RNN）？","options":["擅长处理序列数据的神经网络","擅长处理图像的神经网络","擅长处理表格数据的神经网络","擅长处理图数据的神经网络"],"answer":0,"explanation":"RNN是用于处理序列数据（如文本、时间序列）的神经网络，能记住之前的信息，但存在长距离依赖问题。"},
+  {"id":65,"category":"llm","difficulty":1,"question":"以下哪个不是大语言模型？","options":["Photoshop","GPT-4","Claude","Gemini"],"answer":0,"explanation":"Photoshop是图像处理软件，不是大语言模型。GPT-4、Claude、Gemini都是知名的大语言模型。"},
+  {"id":66,"category":"llm","difficulty":2,"question":"什么是Embedding？","options":["将文本转换为向量表示的技术","将图片嵌入网页的技术","将视频嵌入文档的技术","将音频嵌入文件的技术"],"answer":0,"explanation":"Embedding是将文本转换为计算机能理解的数字向量的技术，是语义搜索和RAG的基础。"},
+  {"id":67,"category":"llm","difficulty":2,"question":"什么是API？","options":["程序之间相互调用的接口","一种编程语言","一种数据库","一种操作系统"],"answer":0,"explanation":"API（Application Programming Interface）是程序之间相互调用的接口，让不同软件能相互通信和协作。"},
+  {"id":68,"category":"prompt","difficulty":2,"question":"为什么Prompt中提供示例会更有效？","options":["帮助AI理解你想要的格式和风格","让AI知道你在测试它","让AI觉得你很聪明","让AI更快回答"],"answer":0,"explanation":"提供示例能让AI更准确地理解你期望的输出格式、风格和质量标准，从而生成更符合要求的回答。"},
+  {"id":69,"category":"prompt","difficulty":3,"question":"什么是系统提示（System Prompt）？","options":["预设AI角色和行为规则的提示","系统的登录密码","电脑的启动提示","软件的安装说明"],"answer":0,"explanation":"系统提示是预设AI角色、行为规则和限制的提示，通常在对话开始前设置，指导AI的整体行为。"},
+  {"id":70,"category":"aigc","difficulty":1,"question":"什么是AI写作？","options":["AI自动生成文字内容","用AI检查错别字","用AI排版文章","用AI翻译文章"],"answer":0,"explanation":"AI写作是利用AI技术自动生成文章、故事、诗歌等文字内容，是AIGC的重要应用之一。"},
+  {"id":71,"category":"aigc","difficulty":2,"question":"什么是Stable Diffusion？","options":["开源的AI绘画模型","一种数据扩散技术","一种网络传输协议","一种文件压缩算法"],"answer":0,"explanation":"Stable Diffusion是一个开源的AI绘画模型，可以根据文字描述生成图片，用户可以本地部署和使用。"},
+  {"id":72,"category":"training","difficulty":1,"question":"训练AI模型需要什么硬件？","options":["高性能GPU","普通电脑","手机","平板电脑"],"answer":0,"explanation":"训练大模型需要大量计算资源，通常需要多块高性能GPU（如NVIDIA A100）并行计算。"},
+  {"id":73,"category":"training","difficulty":2,"question":"什么是梯度下降？","options":["让模型逐步优化的数学方法","让数据逐步减少的方法","让模型逐步变大的方法","让网络逐步扩展的方法"],"answer":0,"explanation":"梯度下降是一种优化算法，通过计算损失函数的梯度来更新模型参数，让模型逐步逼近最优解。"},
+  {"id":74,"category":"training","difficulty":3,"question":"什么是注意力机制（Attention）？","options":["让模型关注输入中最重要部分的机制","让模型集中注意力学习","让模型记住更多数据","让模型更快处理数据"],"answer":0,"explanation":"注意力机制让模型在处理信息时能动态关注输入中最相关的部分，是Transformer架构的核心组件。"},
+  {"id":75,"category":"application","difficulty":1,"question":"以下哪个是AI图像识别的应用？","options":["人脸识别","文件压缩","文字排版","数据备份"],"answer":0,"explanation":"人脸识别是AI图像识别的典型应用，能从图片或视频中识别出人的身份。"},
+  {"id":76,"category":"application","difficulty":2,"question":"什么是自动驾驶？","options":["AI控制汽车自动行驶","汽车的自动清洗","汽车的自动维修","汽车的自动加油"],"answer":0,"explanation":"自动驾驶是利用AI技术让汽车在不需要人类干预的情况下自动行驶，是AI在交通领域的重要应用。"},
+  {"id":77,"category":"application","difficulty":3,"question":"什么是RISC-V？","options":["开源的芯片架构","AI的编程语言","AI的操作系统","AI的数据库"],"answer":0,"explanation":"RISC-V是一种开源的芯片指令集架构，被广泛用于AI芯片设计，能降低芯片开发成本。"},
+  {"id":78,"category":"frontier","difficulty":1,"question":"2026年哪个国产AI模型最受关注？","options":["DeepSeek","GPT-4","Claude","Gemini"],"answer":0,"explanation":"DeepSeek是2026年最受关注的国产AI模型之一，以开源和高性能著称。"},
+  {"id":79,"category":"frontier","difficulty":2,"question":"什么是AI芯片？","options":["专门为AI计算优化的芯片","用于AI的软件","AI的操作系统","AI的数据库"],"answer":0,"explanation":"AI芯片是专门为AI计算优化设计的硬件，如NVIDIA的GPU、Google的TPU等，能大幅提升AI计算效率。"},
+  {"id":80,"category":"frontier","difficulty":3,"question":"什么是联邦学习？","options":["在保护数据隐私的前提下进行分布式AI训练","多个AI模型联合工作","AI模型的联邦政府","AI的联邦网络"],"answer":0,"explanation":"联邦学习是一种分布式机器学习方法，允许多个参与方在不共享原始数据的情况下协作训练AI模型，保护数据隐私。"}
+];
+
+// 分类信息
+const categories = {
+    ai_basics: { name: 'AI基础概念', icon: '🤖' },
+    llm: { name: '大语言模型', icon: '🧠' },
+    prompt: { name: '提示工程', icon: '💬' },
+    aigc: { name: 'AIGC与生成式AI', icon: '🎨' },
+    training: { name: '模型训练与优化', icon: '⚙️' },
+    application: { name: 'AI应用与工具', icon: '🚀' },
+    frontier: { name: '前沿技术', icon: '🔮' }
+};
+
+// 难度信息
+const difficulties = {
+    1: { name: '入门', stars: '⭐' },
+    2: { name: '进阶', stars: '⭐⭐' },
+    3: { name: '前沿', stars: '⭐⭐⭐' }
+};
+
+// 当前游戏模式
+let pendingGameMode = null;
+
+// 显示游戏规则
+function showRules(mode) {
+    pendingGameMode = mode;
+    const modal = document.getElementById('rules-modal');
+    const modalIcon = document.getElementById('modal-icon');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    if (mode === 'level') {
+        modalIcon.textContent = '🎮';
+        modalTitle.textContent = '闯关模式';
+        modalBody.innerHTML = `
+            <div class="rule-item">
+                <span class="rule-icon">❤️</span>
+                <span class="rule-text">你有 <span class="highlight">5条生命</span>，答错一题扣一条</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">💀</span>
+                <span class="rule-text">生命耗尽，游戏结束，从头再来</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">✅</span>
+                <span class="rule-text">答对自动进入下一题</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">❌</span>
+                <span class="rule-text">答错显示详细解析，手动点击继续</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">🏆</span>
+                <span class="rule-text">题目随机打乱，每题1分</span>
+            </div>
+        `;
+    } else {
+        modalIcon.textContent = '📚';
+        modalTitle.textContent = '刷题模式';
+        modalBody.innerHTML = `
+            <div class="rule-item">
+                <span class="rule-icon">📝</span>
+                <span class="rule-text">共 <span class="highlight">80道题</span>，全部做完查看成绩</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">❤️</span>
+                <span class="rule-text">没有生命限制，错了不扣分也不结束</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">✅</span>
+                <span class="rule-text">答对自动进入下一题</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">❌</span>
+                <span class="rule-text">答错显示详细解析，手动点击继续</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">📊</span>
+                <span class="rule-text">最后显示得分、答对数、正确率</span>
+            </div>
+            <div class="rule-item">
+                <span class="rule-icon">💡</span>
+                <span class="rule-text">与闯关模式不同：不会结束，可以慢慢学习</span>
+            </div>
+        `;
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+// 确认规则，开始游戏
+function confirmRules() {
+    const modal = document.getElementById('rules-modal');
+    modal.classList.add('hidden');
+    
+    if (pendingGameMode) {
+        startGame(pendingGameMode);
+        pendingGameMode = null;
+    }
+}
+
+// 初始化游戏
+function initGame() {
+    gameState.questions = shuffleArray([...questionsData]);
+    gameState.currentQuestion = 0;
+    gameState.score = 0;
+    gameState.lives = 5;
+    gameState.correctCount = 0;
+    gameState.wrongCount = 0;
+    gameState.isAnswered = false;
+}
+
+// 洗牌函数
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// 开始游戏
+function startGame(mode) {
+    gameState.mode = mode;
+    initGame();
+    
+    // 更新UI
+    document.getElementById('mode-badge').textContent = mode === 'level' ? '闯关模式' : '刷题模式';
+    document.getElementById('lives-display').style.display = mode === 'level' ? 'flex' : 'none';
+    
+    showScreen('game-screen');
+    loadQuestion();
+}
+
+// 显示屏幕
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
+}
+
+// 加载题目
+function loadQuestion() {
+    if (gameState.currentQuestion >= gameState.questions.length) {
+        showResult();
+        return;
+    }
+    
+    const question = gameState.questions[gameState.currentQuestion];
+    const category = categories[question.category];
+    const difficulty = difficulties[question.difficulty];
+    
+    // 打乱选项顺序
+    const shuffledOptions = shuffleOptions(question.options, question.answer);
+    gameState.currentQuestionData = {
+        ...question,
+        shuffledOptions: shuffledOptions.options,
+        correctIndex: shuffledOptions.correctIndex
+    };
+    
+    // 更新UI
+    document.getElementById('question-counter').textContent = 
+        `第 ${gameState.currentQuestion + 1} / ${gameState.questions.length} 题`;
+    document.getElementById('score-display').textContent = `得分: ${gameState.score}`;
+    document.getElementById('lives-count').textContent = gameState.lives;
+    
+    document.getElementById('progress-fill').style.width = 
+        `${((gameState.currentQuestion) / gameState.questions.length) * 100}%`;
+    
+    document.getElementById('category-tag').textContent = `${category.icon} ${category.name}`;
+    document.getElementById('difficulty-tag').textContent = `${difficulty.stars} ${difficulty.name}`;
+    document.getElementById('question-text').textContent = question.question;
+    
+    // 生成选项
+    const optionsContainer = document.getElementById('options-container');
+    optionsContainer.innerHTML = '';
+    
+    const letters = ['A', 'B', 'C', 'D'];
+    gameState.currentQuestionData.shuffledOptions.forEach((option, index) => {
+        const optionBtn = document.createElement('button');
+        optionBtn.className = 'option-btn';
+        optionBtn.innerHTML = `
+            <span class="option-letter">${letters[index]}</span>
+            <span class="option-text">${option}</span>
+        `;
+        optionBtn.onclick = () => selectAnswer(index);
+        optionsContainer.appendChild(optionBtn);
+    });
+    
+    // 隐藏反馈
+    document.getElementById('feedback-section').classList.add('hidden');
+    gameState.isAnswered = false;
+}
+
+// 打乱选项顺序
+function shuffleOptions(options, correctIndex) {
+    const correctAnswer = options[correctIndex];
+    
+    // 创建选项数组，每个选项带有原始索引
+    const optionsWithIndex = options.map((opt, idx) => ({
+        text: opt,
+        isCorrect: idx === correctIndex
+    }));
+    
+    // Fisher-Yates 洗牌算法
+    for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+    }
+    
+    // 提取打乱后的选项文本和正确答案新位置
+    const shuffledTexts = optionsWithIndex.map(opt => opt.text);
+    const newCorrectIndex = optionsWithIndex.findIndex(opt => opt.isCorrect);
+    
+    return {
+        options: shuffledTexts,
+        correctIndex: newCorrectIndex
+    };
+}
+
+// 选择答案
+function selectAnswer(selectedIndex) {
+    if (gameState.isAnswered) return;
+    gameState.isAnswered = true;
+    
+    const question = gameState.currentQuestionData;
+    const isCorrect = selectedIndex === question.correctIndex;
+    
+    // 高亮选项
+    const options = document.querySelectorAll('.option-btn');
+    options.forEach((option, index) => {
+        option.classList.add('disabled');
+        if (index === question.correctIndex) {
+            option.classList.add('correct');
+        } else if (index === selectedIndex && !isCorrect) {
+            option.classList.add('wrong');
+        }
+    });
+    
+    // 更新分数和生命值
+    if (isCorrect) {
+        gameState.score += 1;
+        gameState.correctCount++;
+    } else {
+        gameState.wrongCount++;
+        if (gameState.mode === 'level') {
+            gameState.lives--;
+            document.getElementById('lives-count').textContent = gameState.lives;
+        }
+    }
+    
+    // 显示反馈
+    const feedbackSection = document.getElementById('feedback-section');
+    const feedbackIcon = document.getElementById('feedback-icon');
+    const feedbackText = document.getElementById('feedback-text');
+    const explanationText = document.getElementById('explanation-text');
+    
+    feedbackIcon.textContent = isCorrect ? '🎉' : '😢';
+    feedbackText.textContent = isCorrect ? '回答正确！' : '回答错误';
+    feedbackText.style.color = isCorrect ? 'var(--success-color)' : 'var(--danger-color)';
+    explanationText.textContent = question.explanation;
+    
+    feedbackSection.classList.remove('hidden');
+    
+    // 更新按钮文本
+    const nextBtn = document.getElementById('next-btn');
+    if (gameState.mode === 'level' && gameState.lives <= 0) {
+        nextBtn.textContent = '查看结果';
+    } else if (gameState.currentQuestion >= gameState.questions.length - 1) {
+        nextBtn.textContent = '查看成绩';
+    } else {
+        nextBtn.textContent = '下一题 →';
+    }
+    
+    // 答对自动下一题，答错需要手动点击
+    if (isCorrect) {
+        // 禁用选项防止重复点击
+        options.forEach(opt => opt.style.pointerEvents = 'none');
+        setTimeout(() => {
+            nextQuestion();
+        }, 1200); // 1.2秒后自动跳转
+    }
+}
+
+// 下一题
+function nextQuestion() {
+    // 检查游戏结束（闯关模式）
+    if (gameState.mode === 'level' && gameState.lives <= 0) {
+        showGameOver();
+        return;
+    }
+    
+    gameState.currentQuestion++;
+    loadQuestion();
+}
+
+// 显示结果（刷题模式）
+function showResult() {
+    const totalQuestions = gameState.questions.length;
+    const accuracy = Math.round((gameState.correctCount / totalQuestions) * 100);
+    
+    document.getElementById('result-icon').textContent = accuracy >= 80 ? '🎉' : accuracy >= 60 ? '👍' : '💪';
+    document.getElementById('result-title').textContent = 
+        accuracy >= 80 ? '太棒了！' : accuracy >= 60 ? '不错哦！' : '继续加油！';
+    
+    document.getElementById('result-stats').innerHTML = `
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.score}</span>
+            <span class="result-stat-label">总分</span>
+        </div>
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.correctCount}</span>
+            <span class="result-stat-label">答对</span>
+        </div>
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.wrongCount}</span>
+            <span class="result-stat-label">答错</span>
+        </div>
+        <div class="result-stat">
+            <span class="result-stat-number">${accuracy}%</span>
+            <span class="result-stat-label">正确率</span>
+        </div>
+    `;
+    
+    document.getElementById('result-message').innerHTML = 
+        `你总共答对了 <strong>${gameState.correctCount}</strong> 道题，答错了 <strong>${gameState.wrongCount}</strong> 道题。<br>` +
+        (accuracy >= 80 ? '你的AI知识非常扎实！继续保持！' : 
+         accuracy >= 60 ? '你对AI有不错的了解，再多学习一下就更好了！' : 
+         'AI世界很精彩，多学习一下吧！');
+    
+    showScreen('result-screen');
+}
+
+// 显示游戏结束（闯关模式）
+function showGameOver() {
+    document.getElementById('gameover-stats').innerHTML = `
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.currentQuestion}</span>
+            <span class="result-stat-label">闯到第几题</span>
+        </div>
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.score}</span>
+            <span class="result-stat-label">总分</span>
+        </div>
+        <div class="result-stat">
+            <span class="result-stat-number">${gameState.correctCount}</span>
+            <span class="result-stat-label">答对</span>
+        </div>
+    `;
+    
+    const encouragement = [
+        '不要气馁，再来一次！',
+        '每次尝试都是进步！',
+        '相信自己，你可以的！',
+        '坚持就是胜利！'
+    ];
+    
+    document.getElementById('gameover-message').innerHTML = 
+        `你在第 <strong>${gameState.currentQuestion + 1}</strong> 题耗尽了所有生命。<br>` +
+        encouragement[Math.floor(Math.random() * encouragement.length)];
+    
+    showScreen('gameover-screen');
+}
+
+// 重新开始游戏
+function restartGame() {
+    startGame(gameState.mode);
+}
+
+// 返回主菜单
+function backToMenu() {
+    showScreen('menu-screen');
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+    showScreen('menu-screen');
+});
