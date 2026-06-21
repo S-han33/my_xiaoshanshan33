@@ -2,7 +2,7 @@
 
 ## 项目简介
 这是一个帮助AI小白加深对AI认识的答题小游戏，内容涵盖AI基础知识、大语言模型、提示工程、AIGC等前沿话题。
-
+网页游览：https://s-han33.github.io/my_xiaoshanshan33/AI%20game/index.html
 ## 知识库说明
 
 ### 题库结构
