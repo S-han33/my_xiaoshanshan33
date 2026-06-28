@@ -22,7 +22,7 @@
 - 也可以简单一点：**转人工**让客服直接回答
 ![img.png](img.png)
 - coze工作流比较简单，感兴趣的可以在里面多添加其他的插件
-![<img width="1150" height="340" alt="image" src="https://github.com/user-attachments/assets/28c6b5f4-925f-42e0-8799-df88aaea527f" />
+![63bd81399d59ae2c7846b5e628d16081.png](63bd81399d59ae2c7846b5e628d16081.png)
 
 - 例如：闲聊这一块，查询商品有关专业知识这一块，对于商品出现的专业词语这一块。
 ## 快速开始🚀
