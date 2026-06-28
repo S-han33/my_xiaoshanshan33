@@ -16,6 +16,9 @@ RSS_FEEDS = [
     {'name': '少数派', 'url': 'https://sspai.com/feed'},
     {'name': '小众软件', 'url': 'https://feeds.appinn.com/appinns/'},
     {'name': 'Solidot', 'url': 'https://www.solidot.org/index.rss'},
+    {'name': '机器之心', 'url': 'https://www.jiqizhixin.com/rss'},
+    {'name': '量子位 QbitAI', 'url': 'https://rss.aishort.top/?type=qbitai'},
+    {'name': '虎嗅网 AI ', 'url': 'https://rss.aishort.top/?type=huxiu&column=tech'},
 ]
 
 # 输出文件路径（相对路径，兼容本地和 GitHub Actions）
