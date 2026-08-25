@@ -5,7 +5,7 @@
 
 一个自动化工具，定时抓取国内主流科技媒体的AI资讯，并自动生成一个干净、可读性强的HTML页面，方便你快速了解当日AI领域动态。
 
-**🌐 在线预览：** [https://s-han33.github.io/my_xiaoshanshan33/新闻项目/](https://s-han33.github.io/my_xiaoshanshan33/新闻项目/)
+**🌐 在线预览：** [https://s-han33.github.io/my_xiaoshanshan33/News_Project/](https://s-han33.github.io/my_xiaoshanshan33/News_Project/)
 
 ---
 
@@ -23,7 +23,9 @@
 > **规范**：每次修改必须记录日期、版本号、修改的具体内容、改动的文件清单。
 
 ---
-
+### 2026-08-25 v2.4
+> **修改人**：33
+>  **修改目的**：修改了项目名字：News_Project
 ### 2026-06-28 v2.4
 > **修改人**：33
 >  **修改目的**：添加了三个信息来源，虎嗅网 AI 专栏、量子位、机器之心
