@@ -1,0 +1,45 @@
+# 云云客服 · Docker Compose（方案 B：双容器，一个容器一个职责）
+# 使用方法：
+#   docker compose up -d --build          # 启动全部
+#   docker compose exec ollama ollama pull qwen2.5:7b    # 拉聊天模型（只需一次）
+#   docker compose exec ollama ollama pull bge-m3        # 拉向量模型（只需一次）
+#   docker compose exec app python -m rag.vector_store   # 首次建向量库
+#   浏览器打开 http://localhost:7860
+# 修改 data 资料后（不用重建镜像）：
+#   docker compose exec app python -m rag.vector_store   # 重新灌库（MD5 去重，只处理改动过的文件）
+#   如果检索结果混乱（旧数据残留），清库重建：
+#     docker compose down && docker volume rm 客服agent_app_chroma && docker compose up -d
+#     然后再跑上面那行建库命令
+services:
+  # 容器 1：Ollama —— 管模型（AI 大脑 + 向量转换器）
+  ollama:
+    image: ollama/ollama:latest
+    container_name: yunyun-ollama
+    volumes:
+      - ollama_data:/root/.ollama        # 模型存 volume，重建容器不重下
+    ports:
+      - "11434:11434"                    # 本地也能直接调 Ollama
+    restart: unless-stopped
+
+  # 容器 2：App —— 管你的客服应用（Gradio / FastAPI）
+  app:
+    build: .
+    container_name: yunyun-app
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434   # 关键：容器内走内部网络连 Ollama
+    ports:
+      - "7860:7860"                      # Gradio 网页
+      - "8000:8000"                      # FastAPI
+    volumes:
+      - ./data:/app/data            # 商品资料：改本地文件立即生效，不用重建镜像
+      - ./md5.text:/app/md5.text    # 灌库去重记录：跟本地同步
+      - app_chroma:/app/chroma_db   # 向量库持久化，重建容器不丢
+      - app_logs:/app/logs
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  app_chroma:
+  app_logs:
